@@ -65,22 +65,16 @@ public class ChatP2P extends JFrame {
 
     private void initializeNetwork() {
         try {
-            // Mapeia usuário para porta diferente
-            Map<String, Integer> userPortMap = new HashMap<>();
-            userPortMap.put("usuario1", 8080);
-            userPortMap.put("usuario2", 8081);
-            userPortMap.put("usuario3", 8082);
-
-            int port = userPortMap.getOrDefault(username, 8080);
-
-            socket = new DatagramSocket(port);
+            // SEMPRE usa porta 8080 conforme edital
+            socket = new DatagramSocket(8080);
             new Thread(this::receiveMessages).start();
+            System.out.println("Usuário " + username + " ouvindo na porta 8080");
 
-            System.out.println("Usuário " + username + " ouvindo na porta " + port);
-
+        } catch (BindException e) {
+            JOptionPane.showMessageDialog(this, "Erro: Porta 8080 já em uso. Execute em outro computador.");
+            System.exit(1);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao criar socket: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
