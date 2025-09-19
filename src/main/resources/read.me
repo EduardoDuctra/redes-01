@@ -1,0 +1,26 @@
+1. Compilar:
+
+cd E:\UFSM\2025_2\Redes\Trabalho1\18_09\redes\src\main\java\br\csi
+javac -cp ".;../../../../../libs/json-20231013.jar" *.java
+
+2. Executar usuários:
+
+# Terminal 1 - usuario1 (porta 8080)
+java -cp ".;../../../../../libs/json-20231013.jar" Main usuario1
+
+# Terminal 2 - usuario2 (porta 8081)
+java -cp ".;../../../../../libs/json-20231013.jar" Main usuario2
+
+# Terminal 3 - usuario3 (porta 8082)
+java -cp ".;../../../../../libs/json-20231013.jar" Main usuario3
+
+Em cada computador na rede:
+
+# No PC 1:
+java -cp ".;caminho_para_json.jar" Main usuario1
+
+# No PC 2:
+java -cp ".;caminho_para_json.jar" Main usuario2
+
+# No PC 3:
+java -cp ".;caminho_para_json.jar" Main usuario3
