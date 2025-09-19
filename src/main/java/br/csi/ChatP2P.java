@@ -274,34 +274,38 @@ public class ChatP2P extends JFrame {
 
     public void sendEndChat(String user) {
         try {
+            System.out.println("🔄 ENVIANDO fim_chat para: " + user);
             JSONObject json = new JSONObject();
             json.put("tipoMensagem", "fim_chat");
             json.put("usuario", username);
-
-            sendMessageToUser(user, json.toString());
-
+            String message = json.toString();
+            System.out.println("📦 Mensagem: " + message);
+            sendMessageToUser(user, message);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("❌ Erro ao enviar fim_chat: " + e.getMessage());
         }
     }
 
     private void sendMessageToUser(String user, String message) {
         try {
+            System.out.println("📤 Enviando mensagem para broadcast...");
             byte[] buffer = message.getBytes();
-            // Envia para broadcast na porta 8080 (conforme edital)
             InetAddress address = InetAddress.getByName("255.255.255.255");
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
                     address, 8080);
             socket.send(packet);
+            System.out.println("✅ Mensagem enviada 1/3");
 
-            // Envia mais 2 vezes para garantir entrega (redundância)
             Thread.sleep(100);
             socket.send(packet);
+            System.out.println("✅ Mensagem enviada 2/3");
+
             Thread.sleep(100);
             socket.send(packet);
+            System.out.println("✅ Mensagem enviada 3/3");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("❌ Erro no envio: " + e.getMessage());
         }
     }
 
@@ -310,13 +314,11 @@ public class ChatP2P extends JFrame {
             byte[] buffer = message.getBytes();
             InetAddress broadcastAddress = InetAddress.getByName("255.255.255.255");
 
-            // Envia para todas as portas possíveis
-            int[] ports = {8080, 8081, 8082};
-            for (int port : ports) {
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
-                        broadcastAddress, port);
-                socket.send(packet);
-            }
+            // Envia apenas para a porta 8080
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
+                    broadcastAddress, 8080);
+            socket.send(packet);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
