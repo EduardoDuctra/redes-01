@@ -215,13 +215,12 @@ public class ChatP2P extends JFrame {
     }
 
     private void handleEndChat(String user) {
-        System.out.println("Recebido fim_chat de: " + user);
         SwingUtilities.invokeLater(() -> {
+            onlineUsersModel.removeElement(user); // remove da lista imediatamente
             UserSession session = userSessions.get(user);
             if (session != null) {
                 session.dispose();
                 userSessions.remove(user);
-                System.out.println("Janela de " + user + " fechada");
             }
         });
     }
