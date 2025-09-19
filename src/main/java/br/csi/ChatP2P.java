@@ -215,11 +215,13 @@ public class ChatP2P extends JFrame {
     }
 
     private void handleEndChat(String user) {
+        System.out.println("Recebido fim_chat de: " + user);
         SwingUtilities.invokeLater(() -> {
             UserSession session = userSessions.get(user);
             if (session != null) {
                 session.dispose();
                 userSessions.remove(user);
+                System.out.println("Janela de " + user + " fechada");
             }
         });
     }
@@ -286,11 +288,18 @@ public class ChatP2P extends JFrame {
     private void sendMessageToUser(String user, String message) {
         try {
             byte[] buffer = message.getBytes();
-            // Envia para broadcast (simplificação)
+            // Envia para broadcast na porta 8080 (conforme edital)
             InetAddress address = InetAddress.getByName("255.255.255.255");
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
                     address, 8080);
             socket.send(packet);
+
+            // Envia mais 2 vezes para garantir entrega (redundância)
+            Thread.sleep(100);
+            socket.send(packet);
+            Thread.sleep(100);
+            socket.send(packet);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
