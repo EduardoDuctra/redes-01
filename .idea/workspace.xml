@@ -7,6 +7,8 @@
     <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2P.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2P.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/UserSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/UserSession.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/read.me" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/read.me" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +100,7 @@
       <updated>1758230997041</updated>
       <workItem from="1758230998105" duration="4282000" />
       <workItem from="1758235403342" duration="5560000" />
-      <workItem from="1758283899198" duration="127000" />
+      <workItem from="1758283899198" duration="1677000" />
     </task>
     <servers />
   </component>
