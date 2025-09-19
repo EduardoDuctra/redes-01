@@ -1,325 +1,377 @@
 package br.csi;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.net.BindException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import java.awt.*;
-import java.net.*;
-import java.io.*;
-import java.util.*;
-import java.util.List;
-
-
 import org.json.JSONObject;
 
 public class ChatP2P extends JFrame {
-    private String username;
+    private String nomeUsuario;
     private String status = "disponivel";
     private DatagramSocket socket;
-    private Map<String, UserSession> userSessions;
-    private DefaultListModel<String> onlineUsersModel;
-    private JList<String> onlineUsersList;
-    private GroupChatWindow groupChat;
+    private Map<String, UserSession> sessoesUsuarios;
+    private DefaultListModel<String> modeloUsuariosOnline;
+    private JList<String> listaUsuariosOnline;
+    private GroupChatWindow janelaGrupo;
+    private Timer timerSonda;
+    private Map<String, UsuarioOnline> usuariosConectados;
 
-    // Timer para sondas
-    private Timer probeTimer;
-    private Map<String, Long> lastProbeTime;
-
-    public ChatP2P(String username) {
-        this.username = username;
-        this.userSessions = new HashMap<>();
-        this.onlineUsersModel = new DefaultListModel<>();
-        this.lastProbeTime = new HashMap<>();
-
-        initializeUI();
-        initializeNetwork();
-        startProbeTimer();
-        startCleanupTimer();
+    public ChatP2P(String nomeUsuario) {
+        this.nomeUsuario = nomeUsuario;
+        this.sessoesUsuarios = new HashMap<>();
+        this.modeloUsuariosOnline = new DefaultListModel<>();
+        this.usuariosConectados = new HashMap<>();
+        this.inicializarInterface();
+        this.inicializarRede();
+        this.iniciarTimerSonda();
+        this.iniciarTimerVerificacaoAtividade();
+        this.iniciarTimerLimpezaInativos();
     }
 
-    private void initializeUI() {
-        setTitle("Chat P2P - " + username);
-        setSize(600, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    private void inicializarInterface() {
+        this.setTitle("Chat P2P - " + this.nomeUsuario);
+        this.setSize(600, 400);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Lista de usuários online
-        onlineUsersList = new JList<>(onlineUsersModel);
-        onlineUsersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        onlineUsersList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                String selectedUser = onlineUsersList.getSelectedValue();
-                if (selectedUser != null) {
-                    openChatWindow(selectedUser);
+        this.listaUsuariosOnline = new JList(this.modeloUsuariosOnline);
+        this.listaUsuariosOnline.setSelectionMode(0);
+        this.listaUsuariosOnline.addListSelectionListener((evento) -> {
+            if (!evento.getValueIsAdjusting()) {
+                String usuarioSelecionado = this.listaUsuariosOnline.getSelectedValue();
+                if (usuarioSelecionado != null) {
+                    this.abrirJanelaChat(usuarioSelecionado);
                 }
             }
         });
 
-        // Botão para chat em grupo
-        JButton groupChatButton = new JButton("Chat em Grupo");
-        groupChatButton.addActionListener(e -> openGroupChat());
+        JButton botaoGrupo = new JButton("Chat em Grupo");
+        botaoGrupo.addActionListener((evento) -> {
+            this.abrirChatGrupo();
+        });
 
-        // Layout
-        setLayout(new BorderLayout());
-        add(new JScrollPane(onlineUsersList), BorderLayout.CENTER);
-        add(groupChatButton, BorderLayout.SOUTH);
+        this.setLayout(new BorderLayout());
+        this.add(new JScrollPane(this.listaUsuariosOnline), BorderLayout.CENTER);
+        this.add(botaoGrupo, BorderLayout.SOUTH);
     }
 
-    private void initializeNetwork() {
+    private void inicializarRede() {
         try {
-            // SEMPRE usa porta 8080 conforme edital
-            socket = new DatagramSocket(8080);
-            new Thread(this::receiveMessages).start();
-            System.out.println("Usuário " + username + " ouvindo na porta 8080");
-
-        } catch (BindException e) {
+            this.socket = new DatagramSocket(8080);
+            (new Thread(this::receberMensagens)).start();
+            System.out.println("👤 Usuário " + this.nomeUsuario + " ouvindo na porta 8080");
+        } catch (BindException erro) {
             JOptionPane.showMessageDialog(this, "Erro: Porta 8080 já em uso. Execute em outro computador.");
             System.exit(1);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao criar socket: " + e.getMessage());
+        } catch (Exception erro) {
+            JOptionPane.showMessageDialog(this, "Erro ao criar socket: " + erro.getMessage());
         }
     }
 
-    private void startProbeTimer() {
-        probeTimer = new Timer(5000, e -> sendProbe());
-        probeTimer.start();
+    private void iniciarTimerSonda() {
+        this.timerSonda = new Timer(5000, (evento) -> {
+            this.enviarSonda();
+        });
+        this.timerSonda.start();
     }
 
-    private void startCleanupTimer() {
-        Timer cleanupTimer = new Timer(10000, e -> cleanupInactiveUsers());
-        cleanupTimer.start();
+    private void iniciarTimerVerificacaoAtividade() {
+        Timer timerAtividade = new Timer(10000, (evento) -> {
+            this.verificarUsuariosAtivos();
+        });
+        timerAtividade.start();
     }
 
-    private void cleanupInactiveUsers() {
-        long currentTime = System.currentTimeMillis();
-        List<String> toRemove = new ArrayList<>();
+    private void iniciarTimerLimpezaInativos() {
+        Timer timerLimpeza = new Timer(10000, (evento) -> {
+            this.removerUsuariosInativos();
+        });
+        timerLimpeza.start();
+    }
 
-        for (Map.Entry<String, Long> entry : lastProbeTime.entrySet()) {
-            if (currentTime - entry.getValue() > 30000) { // 30 segundos
-                toRemove.add(entry.getKey());
+    private void verificarUsuariosAtivos() {
+        long tempoAtual = System.currentTimeMillis();
+        System.out.println("=== USUÁRIOS ATIVOS (últimos 10s) ===");
+
+        if (usuariosConectados.isEmpty()) {
+            System.out.println("Nenhum usuário ativo no momento");
+        } else {
+            for (UsuarioOnline usuario : usuariosConectados.values()) {
+                long tempoInativo = tempoAtual - usuario.getUltimoSinal();
+
+                if (tempoInativo <= 10000) {
+                    System.out.println("✅ " + usuario.getUsuario() + " - " + usuario.getStatus() +
+                            " (inativo há " + (tempoInativo/1000) + "s)");
+                }
+            }
+        }
+        System.out.println("===================================");
+    }
+
+    private void removerUsuariosInativos() {
+        long tempoAtual = System.currentTimeMillis();
+        ArrayList<String> usuariosParaRemover = new ArrayList<>();
+
+        for (Map.Entry<String, UsuarioOnline> entrada : usuariosConectados.entrySet()) {
+            UsuarioOnline usuario = entrada.getValue();
+            long tempoInativo = tempoAtual - usuario.getUltimoSinal();
+
+            if (tempoInativo > 30000) {
+                usuariosParaRemover.add(entrada.getKey());
             }
         }
 
-        for (String user : toRemove) {
-            lastProbeTime.remove(user);
-            onlineUsersModel.removeElement(user);
+        for (String usuario : usuariosParaRemover) {
+            usuariosConectados.remove(usuario);
+            modeloUsuariosOnline.removeElement(usuario);
 
-            UserSession session = userSessions.get(user);
-            if (session != null) {
-                session.dispose();
-                userSessions.remove(user);
+            UserSession sessao = sessoesUsuarios.get(usuario);
+            if (sessao != null) {
+                sessao.dispose();
+                sessoesUsuarios.remove(usuario);
             }
+
+            System.out.println("❌ Usuário " + usuario + " removido por inatividade (30s+)");
         }
     }
 
-    private void sendProbe() {
+    private void enviarSonda() {
         try {
-            JSONObject probe = new JSONObject();
-            probe.put("tipoMensagem", "sonda");
-            probe.put("usuario", username);
-            probe.put("status", status);
+            JSONObject mensagemSonda = new JSONObject();
+            mensagemSonda.put("tipoMensagem", "sonda");
+            mensagemSonda.put("usuario", this.nomeUsuario);
+            mensagemSonda.put("status", this.status);
 
-            String message = probe.toString();
-            byte[] buffer = message.getBytes();
+            String mensagemJson = mensagemSonda.toString();
+            byte[] dados = mensagemJson.getBytes();
+            InetAddress enderecoBroadcast = InetAddress.getByName("255.255.255.255");
+            DatagramPacket pacote = new DatagramPacket(dados, dados.length, enderecoBroadcast, 8080);
 
-            // Envia para broadcast na subrede
-            InetAddress broadcastAddress = InetAddress.getByName("255.255.255.255");
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
-                    broadcastAddress, 8080);
-            socket.send(packet);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            this.socket.send(pacote);
+            System.out.println("📡 Sonda enviada: " + this.nomeUsuario + " - " + this.status);
+        } catch (Exception erro) {
+            System.out.println("❌ Erro ao enviar sonda: " + erro.getMessage());
         }
     }
 
-    private void receiveMessages() {
+    private void receberMensagens() {
         byte[] buffer = new byte[1024];
 
         while (true) {
             try {
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                socket.receive(packet);
+                DatagramPacket pacote = new DatagramPacket(buffer, buffer.length);
+                this.socket.receive(pacote);
 
-                String receivedMessage = new String(packet.getData(), 0, packet.getLength());
-                JSONObject json = new JSONObject(receivedMessage);
+                String mensagemRecebida = new String(pacote.getData(), 0, pacote.getLength());
+                JSONObject mensagemJson = new JSONObject(mensagemRecebida);
+                String tipoMensagem = mensagemJson.getString("tipoMensagem");
+                String usuarioRemetente = mensagemJson.getString("usuario");
 
-                String messageType = json.getString("tipoMensagem");
-                String user = json.getString("usuario");
+                if (!usuarioRemetente.equals(this.nomeUsuario)) {
+                    long tempoAtual = System.currentTimeMillis();
 
-                // Ignora mensagens próprias
-                if (user.equals(username)) {
-                    continue;
+                    // Atualiza ou cria usuário online
+                    UsuarioOnline usuarioOnline = usuariosConectados.get(usuarioRemetente);
+                    if (usuarioOnline == null) {
+                        String statusUsuario = mensagemJson.optString("status", "disponivel");
+                        usuarioOnline = new UsuarioOnline(usuarioRemetente, statusUsuario, tempoAtual);
+                        usuariosConectados.put(usuarioRemetente, usuarioOnline);
+
+                        SwingUtilities.invokeLater(() -> {
+                            if (!modeloUsuariosOnline.contains(usuarioRemetente)) {
+                                modeloUsuariosOnline.addElement(usuarioRemetente);
+                                System.out.println("👤 Novo usuário online: " + usuarioRemetente);
+                            }
+                        });
+                    } else {
+                        usuarioOnline.setUltimoSinal(tempoAtual);
+                        usuarioOnline.setStatus(mensagemJson.optString("status", usuarioOnline.getStatus()));
+                    }
+
+                    System.out.println("📥 Mensagem recebida de " + usuarioRemetente +
+                            " - Tipo: " + tipoMensagem +
+                            " - Status: " + usuarioOnline.getStatus());
+
+                    switch (tipoMensagem) {
+                        case "sonda":
+                            // Já processado acima - apenas atualiza usuário
+                            break;
+                        case "msg_individual":
+                            this.processarMensagemIndividual(mensagemJson, pacote.getAddress());
+                            break;
+                        case "msg_grupo":
+                            this.processarMensagemGrupo(mensagemJson);
+                            break;
+                        case "fim_chat":
+                            this.processarFimChat(usuarioRemetente);
+                            break;
+                    }
                 }
+            } catch (Exception erro) {
+                System.out.println("❌ Erro ao receber mensagem: " + erro.getMessage());
+            }
+        }
+    }
 
-                // Atualiza o tempo da última sonda
-                lastProbeTime.put(user, System.currentTimeMillis());
+    private void processarMensagemIndividual(JSONObject mensagem, InetAddress endereco) {
+        String usuarioRemetente = mensagem.getString("usuario");
+        String conteudoMensagem = mensagem.getString("msg");
 
-                switch (messageType) {
-                    case "sonda":
-                        handleProbe(json, packet.getAddress());
-                        break;
-                    case "msg_individual":
-                        handleIndividualMessage(json, packet.getAddress());
-                        break;
-                    case "msg_grupo":
-                        handleGroupMessage(json);
-                        break;
-                    case "fim_chat":
-                        handleEndChat(user);
-                        break;
+        SwingUtilities.invokeLater(() -> {
+            UserSession sessao = sessoesUsuarios.get(usuarioRemetente);
+            if (sessao == null) {
+                sessao = new UserSession(usuarioRemetente, this);
+                sessoesUsuarios.put(usuarioRemetente, sessao);
+            }
+
+            // Usando o método correto que deve existir em UserSession
+            sessao.addMessage(usuarioRemetente + ": " + conteudoMensagem);
+            sessao.setVisible(true);
+            System.out.println("💬 Mensagem individual de " + usuarioRemetente + ": " + conteudoMensagem);
+        });
+    }
+
+    private void processarMensagemGrupo(JSONObject mensagem) {
+        String usuarioRemetente = mensagem.getString("usuario");
+        String conteudoMensagem = mensagem.getString("msg");
+
+        SwingUtilities.invokeLater(() -> {
+            if (this.janelaGrupo == null) {
+                this.janelaGrupo = new GroupChatWindow(this);
+            }
+
+            // Usando o método correto que deve existir em GroupChatWindow
+            this.janelaGrupo.addMessage(usuarioRemetente + ": " + conteudoMensagem);
+            this.janelaGrupo.setVisible(true);
+            System.out.println("👥 Mensagem de grupo de " + usuarioRemetente + ": " + conteudoMensagem);
+        });
+    }
+
+    private void processarFimChat(String usuario) {
+        SwingUtilities.invokeLater(() -> {
+            usuariosConectados.remove(usuario);
+            modeloUsuariosOnline.removeElement(usuario);
+
+            UserSession sessao = sessoesUsuarios.get(usuario);
+            if (sessao != null) {
+                sessao.dispose();
+                sessoesUsuarios.remove(usuario);
+            }
+
+            System.out.println("👋 Usuário " + usuario + " desconectou");
+        });
+    }
+
+    public void abrirJanelaChat(String usuario) {
+        UserSession sessao = sessoesUsuarios.get(usuario);
+        if (sessao == null) {
+            sessao = new UserSession(usuario, this);
+            sessoesUsuarios.put(usuario, sessao);
+        }
+        sessao.setVisible(true);
+    }
+
+    public void abrirChatGrupo() {
+        if (this.janelaGrupo == null) {
+            this.janelaGrupo = new GroupChatWindow(this);
+        }
+        this.janelaGrupo.setVisible(true);
+    }
+
+    // Método correto - usando o nome original da sua classe
+    public void sendIndividualMessage(String usuarioDestino, String mensagem) {
+        try {
+            JSONObject mensagemJson = new JSONObject();
+            mensagemJson.put("tipoMensagem", "msg_individual");
+            mensagemJson.put("usuario", this.nomeUsuario);
+            mensagemJson.put("status", this.status);
+            mensagemJson.put("msg", mensagem);
+
+            this.enviarMensagemBroadcast(mensagemJson.toString());
+            System.out.println("✉️ Mensagem individual para " + usuarioDestino + ": " + mensagem);
+        } catch (Exception erro) {
+            System.out.println("❌ Erro ao enviar mensagem individual: " + erro.getMessage());
+        }
+    }
+
+    // Método correto - usando o nome original da sua classe
+    public void sendGroupMessage(String mensagem) {
+        try {
+            JSONObject mensagemJson = new JSONObject();
+            mensagemJson.put("tipoMensagem", "msg_grupo");
+            mensagemJson.put("usuario", this.nomeUsuario);
+            mensagemJson.put("status", this.status);
+            mensagemJson.put("msg", mensagem);
+
+            this.enviarMensagemBroadcast(mensagemJson.toString());
+            System.out.println("📢 Mensagem de grupo: " + mensagem);
+        } catch (Exception erro) {
+            System.out.println("❌ Erro ao enviar mensagem de grupo: " + erro.getMessage());
+        }
+    }
+
+    // Método correto - usando o nome original da sua classe
+    public void sendEndChat(String usuarioDestino) {
+        try {
+            JSONObject mensagemJson = new JSONObject();
+            mensagemJson.put("tipoMensagem", "fim_chat");
+            mensagemJson.put("usuario", this.nomeUsuario);
+
+            this.enviarMensagemBroadcast(mensagemJson.toString());
+            System.out.println("🚪 Enviando fim de chat para: " + usuarioDestino);
+        } catch (Exception erro) {
+            System.out.println("❌ Erro ao enviar fim de chat: " + erro.getMessage());
+        }
+    }
+
+    private void enviarMensagemBroadcast(String mensagem) {
+        try {
+            byte[] dados = mensagem.getBytes();
+            InetAddress enderecoBroadcast = InetAddress.getByName("255.255.255.255");
+            DatagramPacket pacote = new DatagramPacket(dados, dados.length, enderecoBroadcast, 8080);
+
+            // Envia 3 vezes para garantir entrega
+            for (int i = 1; i <= 3; i++) {
+                this.socket.send(pacote);
+                System.out.println("✅ Mensagem enviada " + i + "/3");
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
-
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception erro) {
+            System.out.println("❌ Erro no envio broadcast: " + erro.getMessage());
         }
     }
 
-    private void handleProbe(JSONObject json, InetAddress address) {
-        String user = json.getString("usuario");
-        String status = json.getString("status");
-
-        SwingUtilities.invokeLater(() -> {
-            // Adiciona ou atualiza usuário na lista
-            if (!onlineUsersModel.contains(user)) {
-                onlineUsersModel.addElement(user);
-            }
-        });
+    // Métodos auxiliares para compatibilidade
+    public void enviarMensagemIndividual(String usuarioDestino, String mensagem) {
+        this.sendIndividualMessage(usuarioDestino, mensagem);
     }
 
-    private void handleIndividualMessage(JSONObject json, InetAddress address) {
-        String user = json.getString("usuario");
-        String message = json.getString("msg");
-
-        SwingUtilities.invokeLater(() -> {
-            UserSession session = userSessions.get(user);
-            if (session == null) {
-                session = new UserSession(user, this);
-                userSessions.put(user, session);
-            }
-            session.addMessage(user + ": " + message);
-            session.setVisible(true);
-        });
+    public void enviarMensagemGrupo(String mensagem) {
+        this.sendGroupMessage(mensagem);
     }
 
-    private void handleGroupMessage(JSONObject json) {
-        String user = json.getString("usuario");
-        String message = json.getString("msg");
-
-        SwingUtilities.invokeLater(() -> {
-            if (groupChat == null) {
-                groupChat = new GroupChatWindow(this);
-            }
-            groupChat.addMessage(user + ": " + message);
-            groupChat.setVisible(true);
-        });
+    public void enviarFimChat(String usuarioDestino) {
+        this.sendEndChat(usuarioDestino);
     }
 
-    private void handleEndChat(String user) {
-        SwingUtilities.invokeLater(() -> {
-            onlineUsersModel.removeElement(user); // remove da lista imediatamente
-            UserSession session = userSessions.get(user);
-            if (session != null) {
-                session.dispose();
-                userSessions.remove(user);
-            }
-        });
-    }
-
-    public void openChatWindow(String user) {
-        UserSession session = userSessions.get(user);
-        if (session == null) {
-            session = new UserSession(user, this);
-            userSessions.put(user, session);
-        }
-        session.setVisible(true);
-    }
-
-    public void openGroupChat() {
-        if (groupChat == null) {
-            groupChat = new GroupChatWindow(this);
-        }
-        groupChat.setVisible(true);
-    }
-
-    public void sendIndividualMessage(String user, String message) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("tipoMensagem", "msg_individual");
-            json.put("usuario", username);
-            json.put("status", status);
-            json.put("msg", message);
-
-            sendMessageToUser(user, json.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendGroupMessage(String message) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("tipoMensagem", "msg_grupo");
-            json.put("usuario", username);
-            json.put("status", status);
-            json.put("msg", message);
-
-            sendBroadcast(json.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendEndChat(String user) {
-        try {
-            System.out.println("🔄 ENVIANDO fim_chat para: " + user);
-            JSONObject json = new JSONObject();
-            json.put("tipoMensagem", "fim_chat");
-            json.put("usuario", username);
-            String message = json.toString();
-            System.out.println("📦 Mensagem: " + message);
-            sendMessageToUser(user, message);
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao enviar fim_chat: " + e.getMessage());
-        }
-    }
-
-    private void sendMessageToUser(String user, String message) {
-        try {
-            System.out.println("📤 Enviando mensagem para broadcast...");
-            byte[] buffer = message.getBytes();
-            InetAddress address = InetAddress.getByName("255.255.255.255");
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
-                    address, 8080);
-            socket.send(packet);
-            System.out.println("✅ Mensagem enviada 1/3");
-
-            Thread.sleep(100);
-            socket.send(packet);
-            System.out.println("✅ Mensagem enviada 2/3");
-
-            Thread.sleep(100);
-            socket.send(packet);
-            System.out.println("✅ Mensagem enviada 3/3");
-
-        } catch (Exception e) {
-            System.out.println("❌ Erro no envio: " + e.getMessage());
-        }
-    }
-
-    private void sendBroadcast(String message) {
-        try {
-            byte[] buffer = message.getBytes();
-            InetAddress broadcastAddress = InetAddress.getByName("255.255.255.255");
-
-            // Envia apenas para a porta 8080
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
-                    broadcastAddress, 8080);
-            socket.send(packet);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public Map<String, UsuarioOnline> getUsuariosConectados() {
+        return new HashMap<>(usuariosConectados);
     }
 }
