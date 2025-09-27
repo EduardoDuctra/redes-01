@@ -155,7 +155,7 @@ public class ChatP2P extends JFrame {
                 } else {
                     status = "⚠️ Inativo";
                 }
-                System.out.println(status + " " + u.getUsuario() + " - " + " (inativo há " + (inativo / 1000) + "s)");
+                System.out.println(status + " " + u.getUsuario());
             }
         }
 
