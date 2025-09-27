@@ -149,10 +149,16 @@ public class ChatP2P extends JFrame {
         } else {
             for (UsuarioOnline u : usuariosConectados.values()) {
                 long inativo = agora - u.getUltimoSinal();
-                String status = inativo <= 10000 ? "✅" : "⚠️ Inativo";
-                System.out.println(status + " " + u.getUsuario() + " - " + u.getStatus() + " (inativo há " + (inativo/1000) + "s)");
+                String status;
+                if (inativo <= 10000) {
+                    status = "✅";
+                } else {
+                    status = "⚠️ Inativo";
+                }
+                System.out.println(status + " " + u.getUsuario() + " - " + " (inativo há " + (inativo / 1000) + "s)");
             }
         }
+
         System.out.println("===================================");
     }
 

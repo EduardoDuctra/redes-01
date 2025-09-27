@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2P.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2P.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/GroupChatWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/GroupChatWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/UserSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/UserSession.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/read.me" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/read.me" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/br/csi/UserSession$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/br/csi/UserSession$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/br/csi/UserSession.class" beforeDir="false" afterPath="$PROJECT_DIR$/bin/br/csi/UserSession.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +102,7 @@
       <workItem from="1758573847005" duration="704000" />
       <workItem from="1758716795035" duration="2010000" />
       <workItem from="1758883429622" duration="48000" />
-      <workItem from="1759008097293" duration="1251000" />
+      <workItem from="1759008097293" duration="1762000" />
     </task>
     <servers />
   </component>
