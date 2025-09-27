@@ -26,6 +26,7 @@ public class UserSession extends JFrame {
         JScrollPane scrollPane = new JScrollPane(chatArea);
 
         messageField = new JTextField();
+
         JButton sendButton = new JButton("Enviar");
         sendButton.addActionListener(e -> sendMessage());
         messageField.addActionListener(e -> sendMessage());
@@ -39,18 +40,23 @@ public class UserSession extends JFrame {
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
 
+        // Painel inferior
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(messageField, BorderLayout.CENTER);
-        bottomPanel.add(sendButton, BorderLayout.EAST);
+
+        // Painel para os botões, abaixo do campo de texto
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 0));
+        buttonPanel.add(sendButton);
+        buttonPanel.add(endChatButton);
+
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
+
         add(bottomPanel, BorderLayout.SOUTH);
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(endChatButton, BorderLayout.EAST);
-        add(topPanel, BorderLayout.NORTH);
-
-        addWindowListener(new WindowAdapter() {
+        // Fechar janela
+        addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e) {
+            public void windowClosing(java.awt.event.WindowEvent e) {
                 encerrarChat();
             }
         });

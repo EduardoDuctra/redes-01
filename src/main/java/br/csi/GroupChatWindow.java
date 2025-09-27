@@ -21,37 +21,38 @@ public class GroupChatWindow extends JFrame {
         setSize(500, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Área de chat
         chatArea = new JTextArea();
         chatArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(chatArea);
 
-        // Campo de mensagem e botão enviar
         messageField = new JTextField();
         JButton sendButton = new JButton("Enviar");
-
         sendButton.addActionListener(e -> sendMessage());
         messageField.addActionListener(e -> sendMessage());
 
-        // Layout
+        JButton endChatButton = new JButton("Encerrar Chat");
+        endChatButton.addActionListener(e -> {
+            endChatButton.setEnabled(false);
+            parent.sendEndChat("grupo"); // ou alguma lógica específica para grupo
+            dispose();
+        });
+
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
 
+        // Painel inferior com campo de mensagem
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(messageField, BorderLayout.CENTER);
-        bottomPanel.add(sendButton, BorderLayout.EAST);
+
+        // Painel para botões abaixo do campo de mensagem
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 0));
+        buttonPanel.add(sendButton);
+        buttonPanel.add(endChatButton);
+
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(bottomPanel, BorderLayout.SOUTH);
-
-        // Fechar janela
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                dispose();
-            }
-        });
     }
-
     private void sendMessage() {
         String message = messageField.getText().trim();
         if (!message.isEmpty()) {

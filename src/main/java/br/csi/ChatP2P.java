@@ -210,8 +210,16 @@ public class ChatP2P extends JFrame {
             modeloUsuariosOnline.removeElement(usuario);
 
             UserSession sessao = sessoesUsuarios.get(usuario);
-            if (sessao != null) sessao.dispose();
-            sessoesUsuarios.remove(usuario);
+            if (sessao != null) {
+                // Mostra mensagem no chat antes de fechar
+                sessao.addMessage("⚠️ O usuário " + usuario + " encerrou o chat.");
+
+                // Fecha a janela após 3 segundos
+                new javax.swing.Timer(3000, e -> {
+                    sessao.dispose();
+                    sessoesUsuarios.remove(usuario);
+                }).start();
+            }
 
             System.out.println("👋 Usuário " + usuario + " desconectou");
         });
@@ -286,6 +294,8 @@ public class ChatP2P extends JFrame {
         janelaGrupo.setVisible(true);
     }
 
+
+
     // Getters
     public Map<String, UsuarioOnline> getUsuariosConectados() {
         return usuariosConectados;
@@ -298,4 +308,6 @@ public class ChatP2P extends JFrame {
     public DefaultListModel<String> getModeloUsuariosOnline() {
         return modeloUsuariosOnline;
     }
+
+
 }
