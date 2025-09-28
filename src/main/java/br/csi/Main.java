@@ -9,15 +9,26 @@ import org.json.JSONObject;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Uso: java Main <nome_usuario>");
-            return;
+        String username = null;
+
+        // Se houver argumento, usa ele
+        if (args.length >= 1) {
+            username = args[0];
+        } else {
+            // Senão, pede via diálogo
+            username = JOptionPane.showInputDialog(null, "Digite seu nome de usuário:", "Login", JOptionPane.QUESTION_MESSAGE);
         }
 
-        String username = args[0];
+        // Verifica se o nome é válido
+        if (username == null || username.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nome de usuário inválido. Encerrando o chat.");
+            System.exit(0);
+        }
 
+        // Inicializa o chat na Event Dispatch Thread
+        String finalUsername = username.trim();
         SwingUtilities.invokeLater(() -> {
-            ChatP2P chat = new ChatP2P(username);
+            ChatP2P chat = new ChatP2P(finalUsername);
             chat.setVisible(true);
         });
     }
