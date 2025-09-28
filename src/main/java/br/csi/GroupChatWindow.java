@@ -9,8 +9,8 @@ public class GroupChatWindow extends JFrame {
     private JTextArea chatArea;
     private JTextField messageField;
 
-    public GroupChatWindow(ChatService chatService) {
-        this.chatService = chatService;
+    public GroupChatWindow(ChatService service) {
+        this.chatService = service;
         initializeUI();
     }
 
@@ -29,18 +29,14 @@ public class GroupChatWindow extends JFrame {
         JButton sendButton = new JButton("Enviar");
         sendButton.addActionListener(e -> sendMessage());
 
-        JButton endChatButton = new JButton("Encerrar Chat");
-        endChatButton.addActionListener(e -> dispose());
-
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(messageField, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(1,2,5,0));
+        JPanel buttonPanel = new JPanel(new GridLayout(1,1));
         buttonPanel.add(sendButton);
-        buttonPanel.add(endChatButton);
 
         bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);

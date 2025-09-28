@@ -5,12 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2PUI.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/br/csi/ChatService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2P.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2P.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2PUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2PUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/ChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/ChatService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/GroupChatWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/GroupChatWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/UserSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/UserSession.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/UsuarioOnline.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/UsuarioOnline.java" afterDir="false" />
     </list>
@@ -109,7 +106,7 @@
       <workItem from="1758716795035" duration="2010000" />
       <workItem from="1758883429622" duration="48000" />
       <workItem from="1759008097293" duration="2149000" />
-      <workItem from="1759094108004" duration="2542000" />
+      <workItem from="1759094108004" duration="2891000" />
     </task>
     <servers />
   </component>

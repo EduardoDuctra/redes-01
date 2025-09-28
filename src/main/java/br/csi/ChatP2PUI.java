@@ -14,12 +14,12 @@ public class ChatP2PUI extends JFrame implements ChatService.ChatListener {
     private Map<String, UserSession> sessoes;
     private GroupChatWindow janelaGrupo;
 
-    public ChatP2PUI(ChatService service) {
-        this.chatService = service;
+    public ChatP2PUI(ChatService chatService) {
+        this.chatService = chatService;
         this.sessoes = new HashMap<>();
         this.modeloUsuarios = new DefaultListModel<>();
-
         inicializarInterface();
+        chatService.addListener(this);
     }
 
     private void inicializarInterface() {
@@ -31,10 +31,7 @@ public class ChatP2PUI extends JFrame implements ChatService.ChatListener {
         listaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listaUsuarios.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    String usuario = listaUsuarios.getSelectedValue();
-                    abrirJanelaChat(usuario);
-                }
+                if (e.getClickCount() == 2) abrirJanelaChat(listaUsuarios.getSelectedValue());
             }
         });
 
@@ -67,9 +64,11 @@ public class ChatP2PUI extends JFrame implements ChatService.ChatListener {
 
     @Override
     public void usuarioRemovido(String usuario) {
-        SwingUtilities.invokeLater(() -> modeloUsuarios.removeElement(usuario));
-        UserSession sessao = sessoes.remove(usuario);
-        if (sessao != null) sessao.dispose();
+        SwingUtilities.invokeLater(() -> {
+            modeloUsuarios.removeElement(usuario);
+            UserSession sessao = sessoes.remove(usuario);
+            if (sessao != null) sessao.dispose();
+        });
     }
 
     @Override

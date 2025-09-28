@@ -2,41 +2,66 @@ package br.csi;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class UserSession extends JFrame {
 
-    private JTextArea areaChat;
-    private JTextField campoMensagem;
     private String usuario;
     private ChatService chatService;
+    private JTextArea chatArea;
+    private JTextField messageField;
 
     public UserSession(String usuario, ChatService service) {
-        super("Chat com " + usuario);
         this.usuario = usuario;
         this.chatService = service;
-
-        areaChat = new JTextArea();
-        areaChat.setEditable(false);
-        campoMensagem = new JTextField();
-        campoMensagem.addActionListener(this::enviarMensagem);
-
-        setLayout(new BorderLayout());
-        add(new JScrollPane(areaChat), BorderLayout.CENTER);
-        add(campoMensagem, BorderLayout.SOUTH);
-        setSize(400,300);
+        initializeUI();
     }
 
-    private void enviarMensagem(ActionEvent e) {
-        String msg = campoMensagem.getText();
-        if(msg.isEmpty()) return;
-        chatService.enviarMensagemIndividual(usuario, msg);
-        addMessage("Eu: " + msg);
-        campoMensagem.setText("");
+    private void initializeUI() {
+        setTitle("Chat com " + usuario);
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        chatArea = new JTextArea();
+        chatArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(chatArea);
+
+        messageField = new JTextField();
+        messageField.addActionListener(e -> sendMessage());
+
+        JButton sendButton = new JButton("Enviar");
+        sendButton.addActionListener(e -> sendMessage());
+
+        JButton endChatButton = new JButton("Encerrar Chat");
+        endChatButton.addActionListener(e -> {
+            chatService.enviarFimChat(usuario);
+            dispose();
+        });
+
+        setLayout(new BorderLayout());
+        add(scrollPane, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(messageField, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1,2,5,0));
+        buttonPanel.add(sendButton);
+        buttonPanel.add(endChatButton);
+
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+    private void sendMessage() {
+        String msg = messageField.getText().trim();
+        if(!msg.isEmpty()) {
+            chatService.enviarMensagemIndividual(usuario, msg);
+            addMessage("Você: " + msg);
+            messageField.setText("");
+        }
     }
 
     public void addMessage(String msg) {
-        areaChat.append(msg + "\n");
+        chatArea.append(msg + "\n");
+        chatArea.setCaretPosition(chatArea.getDocument().getLength());
     }
 }
-
