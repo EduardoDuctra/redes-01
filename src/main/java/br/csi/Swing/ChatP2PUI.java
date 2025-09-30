@@ -113,6 +113,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         });
     }
 
+
     public void fimChatRecebido(User usuario) {
         SwingUtilities.invokeLater(() -> {
             // Recupera a sessão correspondente
@@ -126,9 +127,8 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
                 new Timer(3000, e -> sessao.dispose()).start();
             }
 
-            // Remove o usuário da lista de contatos
-            modeloUsuarios.removeElement(usuario.getNome());
+            // NÃO remove o usuário da lista de contatos
+            // modeloUsuarios.removeElement(usuario.getNome()); <-- REMOVER ESSA LINHA
         });
     }
-
 }
