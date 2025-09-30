@@ -101,13 +101,16 @@ public class ChatService {
                     if (agora - u.getUltimoSinal() > 30000) {
                         usuariosConectados.remove(u.getNome());
                         System.out.println("⚠️ Usuário removido por inatividade: " + u.getNome());
-                        for (UserListener l : userListeners) l.usuarioRemovido(u);
+
+                        // Atualiza a interface local removendo da lista de transmissão
+                        for (UserListener l : userListeners) {
+                            l.usuarioRemovido(u);
+                        }
                     }
                 }
             }
         }, 0, 5000);
     }
-
     // ===== Recebimento de mensagens =====
     private void receberMensagensAsync() {
         new Thread(() -> {
@@ -116,47 +119,58 @@ public class ChatService {
                 try {
                     DatagramPacket pacote = new DatagramPacket(buffer, buffer.length);
                     socket.receive(pacote);
+
                     String dados = new String(pacote.getData(), 0, pacote.getLength());
                     Mensagem msg = Mensagem.fromJson(new org.json.JSONObject(dados));
 
+                    // Ignora mensagens enviadas por você mesmo
                     if (msg.getRemetente().equals(nomeUsuario)) continue;
 
-                    if ("indisponivel".equalsIgnoreCase(this.status)) continue;
-
                     long agora = System.currentTimeMillis();
-                    User u = usuariosConectados.get(msg.getRemetente());
-                    if (u == null) {
-                        u = new User(msg.getRemetente(),
+                    User remetente = usuariosConectados.get(msg.getRemetente());
+
+                    // Cria usuário se não existir
+                    if (remetente == null) {
+                        remetente = new User(msg.getRemetente(),
                                 msg.getTipo() == TipoMensagem.SONDA ? msg.getConteudo() : "disponivel",
                                 agora);
-                        usuariosConectados.put(u.getNome(), u);
-                        for (UserListener l : userListeners) l.usuarioAdicionado(u);
+                        usuariosConectados.put(remetente.getNome(), remetente);
+                        for (UserListener l : userListeners) l.usuarioAdicionado(remetente);
                     } else {
-                        u.setUltimoSinal(agora);
+                        remetente.setUltimoSinal(agora);
+                        // Atualiza status se for sonda
                         if (msg.getTipo() == TipoMensagem.SONDA) {
-                            u.setStatus(msg.getConteudo());
-                            for (UserListener l : userListeners) l.usuarioAlterado(u);
+                            remetente.setStatus(msg.getConteudo());
+                            for (UserListener l : userListeners) l.usuarioAlterado(remetente);
                         }
                     }
 
-                    boolean chatGeral = msg.getTipo() == TipoMensagem.MSG_GRUPO;
+                    // Ignora mensagens de usuários indisponíveis
+                    if ("indisponivel".equalsIgnoreCase(remetente.getStatus())) {
+                        System.out.println("Mensagem de " + remetente.getNome() + " ignorada (indisponível).");
+                        continue;
+                    }
 
+                    // Trata envio de mensagens para listeners
                     switch (msg.getTipo()) {
                         case MSG_INDIVIDUAL:
                             for (MessageListener l : messageListeners)
-                                l.mensagemRecebida(msg.getConteudo(), u, false); // false = mensagem privada
+                                l.mensagemRecebida(msg.getConteudo(), remetente, false);
                             break;
+
                         case MSG_GRUPO:
                             for (MessageListener l : messageListeners)
-                                l.mensagemRecebida(msg.getConteudo(), u, true); // true = mensagem de grupo
+                                l.mensagemRecebida(msg.getConteudo(), remetente, true);
                             break;
+
                         case FIM_CHAT:
                             for (UserListener l : userListeners) {
-                                if (l instanceof ChatP2PUI) {
-                                    ((ChatP2PUI) l).fimChatRecebido(u); // chama a função da UI
+                                if (l instanceof br.csi.Swing.ChatP2PUI) {
+                                    ((br.csi.Swing.ChatP2PUI) l).fimChatRecebido(remetente);
                                 }
                             }
                             break;
+
                         case SONDA:
                             // já tratado no status
                             break;
@@ -168,7 +182,6 @@ public class ChatService {
             }
         }).start();
     }
-
     // ===== Envio de mensagens =====
     private void enviarMensagemBroadcast(String mensagem) {
         try {
