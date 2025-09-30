@@ -1,4 +1,4 @@
-package br.csi;
+package br.csi.Test;
 
 import org.json.JSONObject;
 public class TestJson {

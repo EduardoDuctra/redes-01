@@ -1,18 +1,23 @@
-package br.csi;
+package br.csi.Model;
 
-public class UsuarioOnline {
-    private String usuario;
+public class User {
+    private String nome;
     private String status;
     private long ultimoSinal;
 
-    public UsuarioOnline(String usuario, String status, long ultimoSinal) {
-        this.usuario = usuario;
+    public User(String nome, String status, long ultimoSinal) {
+        this.nome = nome;
         this.status = status;
         this.ultimoSinal = ultimoSinal;
     }
 
-    public String getUsuario() {
-        return usuario;
+    // ===== Getters e Setters =====
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public String getStatus() {
@@ -29,5 +34,11 @@ public class UsuarioOnline {
 
     public void setUltimoSinal(long ultimoSinal) {
         this.ultimoSinal = ultimoSinal;
+    }
+
+    // ===== Utilitário =====
+    @Override
+    public String toString() {
+        return nome + " (" + status + ")";
     }
 }

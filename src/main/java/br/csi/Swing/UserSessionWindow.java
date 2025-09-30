@@ -1,22 +1,27 @@
-package br.csi;
+package br.csi.Swing;
+
+import br.csi.Model.User;
+import br.csi.Service.ChatService;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class GroupChatWindow extends JFrame {
+public class UserSessionWindow extends JFrame {
 
+    private User usuario;
     private ChatService chatService;
     private JTextArea chatArea;
     private JTextField messageField;
 
-    public GroupChatWindow(ChatService service) {
+    public UserSessionWindow(User usuario, ChatService service) {
+        this.usuario = usuario;
         this.chatService = service;
         initializeUI();
     }
 
     private void initializeUI() {
-        setTitle("Chat em Grupo");
-        setSize(500, 400);
+        setTitle("Chat com " + usuario.getNome());
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         chatArea = new JTextArea();
@@ -29,14 +34,21 @@ public class GroupChatWindow extends JFrame {
         JButton sendButton = new JButton("Enviar");
         sendButton.addActionListener(e -> sendMessage());
 
+        JButton endChatButton = new JButton("Encerrar Chat");
+        endChatButton.addActionListener(e -> {
+            chatService.enviarFimChat(usuario.getNome());
+            dispose();
+        });
+
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(messageField, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(1,1));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 0));
         buttonPanel.add(sendButton);
+        buttonPanel.add(endChatButton);
 
         bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
@@ -44,8 +56,8 @@ public class GroupChatWindow extends JFrame {
 
     private void sendMessage() {
         String msg = messageField.getText().trim();
-        if(!msg.isEmpty()) {
-            chatService.enviarMensagemGrupo(msg);
+        if (!msg.isEmpty()) {
+            chatService.enviarMensagemIndividual(usuario.getNome(), msg);
             addMessage("Você: " + msg);
             messageField.setText("");
         }
@@ -54,5 +66,11 @@ public class GroupChatWindow extends JFrame {
     public void addMessage(String msg) {
         chatArea.append(msg + "\n");
         chatArea.setCaretPosition(chatArea.getDocument().getLength());
+    }
+
+    // ===== Atualizar usuário =====
+    public void atualizarUsuario(User usuario) {
+        this.usuario = usuario;
+        setTitle("Chat com " + usuario.getNome());
     }
 }

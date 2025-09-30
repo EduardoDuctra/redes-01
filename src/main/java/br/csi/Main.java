@@ -1,5 +1,8 @@
 package br.csi;
 
+import br.csi.Service.ChatService;
+import br.csi.Swing.ChatP2PUI;
+
 import javax.swing.*;
 import java.net.SocketException;
 
