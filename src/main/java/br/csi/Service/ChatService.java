@@ -147,6 +147,11 @@ public class ChatService implements UDPService {
                         continue;
                     }
 
+                    // 🔹 Ignora mensagens individuais ou de grupo enviadas por si mesmo
+                    if (msg.getRemetente().equals(nomeUsuario) && msg.getTipo() != TipoMensagem.SONDA) {
+                        continue;
+                    }
+
                     long agora = System.currentTimeMillis();
                     User remetente = usuariosConectados.get(msg.getRemetente());
 
@@ -205,6 +210,8 @@ public class ChatService implements UDPService {
             }
         }).start();
     }
+
+
     private void enviarMensagemBroadcast(String mensagem) {
         try {
             byte[] dados = mensagem.getBytes();
