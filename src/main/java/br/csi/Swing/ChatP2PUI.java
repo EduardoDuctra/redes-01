@@ -69,7 +69,10 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     // ===== Métodos para abrir janelas de chat =====
     public void abrirJanelaChat(String nomeUsuario) {
         User usuario = chatService.getUsuariosConectados().get(nomeUsuario);
-        if (usuario == null) return; // usuário não encontrado
+        if (usuario == null || "indisponivel".equalsIgnoreCase(usuario.getStatus())) {
+            JOptionPane.showMessageDialog(this, "Usuário indisponível.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         UserSessionWindow sessao = sessoes.get(usuario.getNome());
         if (sessao == null) {
