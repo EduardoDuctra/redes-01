@@ -174,11 +174,19 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
                 janelaGrupo.setVisible(true);
             } else {
                 UserSessionWindow sessao = sessoes.get(remetente.getNome());
-                if (sessao == null) {
-                    sessao = new UserSessionWindow(remetente, chatService);
-                    sessoes.put(remetente.getNome(), sessao);
+
+                // 🔹 Se a janela já existe, só adiciona a mensagem
+                if (sessao != null) {
+                    sessao.addMessage(remetente.getNome() + ": " + mensagem);
+                    sessao.setVisible(true);
+                    sessao.toFront(); // garante que fique visível
+                    return;
                 }
+
+                // 🔹 Caso não exista, cria e adiciona ao mapa
+                sessao = new UserSessionWindow(remetente, chatService);
                 sessao.addMessage(remetente.getNome() + ": " + mensagem);
+                sessoes.put(remetente.getNome(), sessao);
                 sessao.setVisible(true);
             }
         });

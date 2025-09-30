@@ -142,7 +142,7 @@ public class ChatService implements UDPService {
                     String dados = new String(pacote.getData(), 0, pacote.getLength());
                     Mensagem msg = Mensagem.fromJson(new org.json.JSONObject(dados));
 
-                    // Ignora a própria sonda, para não sobrescrever o status
+                    // 🔹 Ignora a própria sonda para não sobrescrever o status
                     if (msg.getRemetente().equals(nomeUsuario) && msg.getTipo() == TipoMensagem.SONDA) {
                         continue;
                     }
@@ -151,57 +151,52 @@ public class ChatService implements UDPService {
                     User remetente = usuariosConectados.get(msg.getRemetente());
 
                     if (remetente == null) {
-                        // Novo usuário encontrado
-                        String statusInicial = msg.getTipo() == TipoMensagem.SONDA ? msg.getConteudo() : "disponivel";
-                        remetente = new User(msg.getRemetente(), statusInicial, agora);
+                        // Novo usuário
+                        remetente = new User(
+                                msg.getRemetente(),
+                                msg.getTipo() == TipoMensagem.SONDA ? msg.getConteudo() : "disponivel",
+                                agora
+                        );
                         usuariosConectados.put(remetente.getNome(), remetente);
-
-                        for (UserListener l : userListeners) {
-                            l.usuarioAdicionado(remetente);
-                        }
+                        for (UserListener l : userListeners) l.usuarioAdicionado(remetente);
                     } else {
-                        // Usuário existente, atualiza último sinal
+                        // Atualiza último sinal
                         remetente.setUltimoSinal(agora);
 
+                        // Atualiza status se for sonda
                         if (msg.getTipo() == TipoMensagem.SONDA) {
-                            // Atualiza status apenas se for diferente do atual
-                            if (!remetente.getStatus().equalsIgnoreCase(msg.getConteudo())) {
-                                remetente.setStatus(msg.getConteudo());
-                                for (UserListener l : userListeners) {
-                                    l.usuarioAlterado(remetente);
-                                }
-                            }
+                            remetente.setStatus(msg.getConteudo());
+                            for (UserListener l : userListeners) l.usuarioAlterado(remetente);
                         }
                     }
 
-                    // Bloqueia mensagens individuais de usuários indisponíveis
-                    if ("indisponivel".equalsIgnoreCase(remetente.getStatus())) continue;
+                    // Se usuário está indisponível, ignora mensagens individuais
+                    if ("indisponivel".equalsIgnoreCase(remetente.getStatus()) && msg.getTipo() != TipoMensagem.SONDA) {
+                        continue;
+                    }
 
                     // Processa mensagens
                     switch (msg.getTipo()) {
-                        case MSG_INDIVIDUAL:
+                        case MSG_INDIVIDUAL -> {
                             for (MessageListener l : messageListeners) {
                                 l.mensagemRecebida(msg.getConteudo(), remetente, false);
                             }
-                            break;
-
-                        case MSG_GRUPO:
+                        }
+                        case MSG_GRUPO -> {
                             for (MessageListener l : messageListeners) {
                                 l.mensagemRecebida(msg.getConteudo(), remetente, true);
                             }
-                            break;
-
-                        case FIM_CHAT:
+                        }
+                        case FIM_CHAT -> {
                             for (UserListener l : userListeners) {
                                 if (l instanceof ChatP2PUI) {
                                     ((ChatP2PUI) l).fimChatRecebido(remetente);
                                 }
                             }
-                            break;
-
-                        case SONDA:
-                            // Nenhuma ação extra
-                            break;
+                        }
+                        case SONDA -> {
+                            // Nada a fazer, já atualizamos o status
+                        }
                     }
 
                 } catch (Exception e) {
