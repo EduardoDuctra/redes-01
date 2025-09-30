@@ -37,6 +37,21 @@ public class ChatService implements UDPService {
     public void setStatus(String novoStatus) {
         this.status = novoStatus;
         enviarSonda();
+
+        // Atualiza o próprio usuário no mapa
+        User self = usuariosConectados.get(nomeUsuario);
+        if (self == null) {
+            self = new User(nomeUsuario, status, System.currentTimeMillis());
+            usuariosConectados.put(nomeUsuario, self);
+        } else {
+            self.setStatus(status);
+            self.setUltimoSinal(System.currentTimeMillis());
+        }
+
+        // Notifica os listeners
+        for (UserListener l : userListeners) {
+            l.usuarioAlterado(self);
+        }
     }
 
     public String getNomeUsuario() {
