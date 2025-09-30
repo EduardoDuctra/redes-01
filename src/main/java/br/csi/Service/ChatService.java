@@ -196,8 +196,10 @@ public class ChatService {
 
     public void enviarMensagemIndividual(String destinatario, String conteudo) {
         User usuario = usuariosConectados.get(destinatario);
+
+        // Bloqueia envio se o destinatário estiver indisponível
         if (usuario != null && "indisponivel".equalsIgnoreCase(usuario.getStatus())) {
-            System.out.println("⚠️ Usuário " + destinatario + " está indisponível. Mensagem não enviada.");
+            System.out.println("⚠️ Mensagem não enviada. Usuário " + destinatario + " está indisponível.");
             return;
         }
 
@@ -208,7 +210,6 @@ public class ChatService {
             System.out.println("Erro ao enviar msg individual: " + e.getMessage());
         }
     }
-
     public void enviarMensagemGrupo(String conteudo) {
         try {
             Mensagem msg = Mensagem.criarMsgGrupo(nomeUsuario, conteudo);
