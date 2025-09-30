@@ -27,8 +27,8 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         this.modeloUsuarios = new DefaultListModel<>();
 
         // Registra listeners
-        chatService.addMessageListener(this);
-        chatService.addUserListener(this);
+        chatService.addListenerMensagem(this);
+        chatService.addListenerUsuario(this);
 
         inicializarInterface();
     }
@@ -87,7 +87,9 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         User usuario = chatService.getUsuariosConectados().get(nomeUsuario);
 
         if (usuario == null) {
-            JOptionPane.showMessageDialog(this, "Usuário não está mais conectado.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Usuário não está mais conectado.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -103,7 +105,6 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         }
         sessao.setVisible(true);
     }
-
     // ===== Abrir chat em grupo =====
     public void abrirChatGrupo() {
         if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);
@@ -127,7 +128,15 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
 
     @Override
     public void usuarioAlterado(User usuario) {
-        SwingUtilities.invokeLater(() -> listaUsuarios.repaint());
+        SwingUtilities.invokeLater(() -> {
+            listaUsuarios.repaint();
+
+            // Atualiza a janela de chat se ela estiver aberta
+            UserSessionWindow sessao = sessoes.get(usuario.getNome());
+            if (sessao != null) {
+                sessao.atualizarUsuario(usuario);
+            }
+        });
     }
 
     // ===== MessageListener =====

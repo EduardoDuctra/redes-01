@@ -12,6 +12,7 @@ public class UserSessionWindow extends JFrame {
     private ChatService chatService;
     private JTextArea chatArea;
     private JTextField messageField;
+    private JButton sendButton; // agora é atributo da classe
 
     public UserSessionWindow(User usuario, ChatService service) {
         this.usuario = usuario;
@@ -19,12 +20,14 @@ public class UserSessionWindow extends JFrame {
 
         // Bloqueia criação da janela se usuário estiver indisponível
         if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
-            JOptionPane.showMessageDialog(null, "Não é possível iniciar chat. Usuário indisponível.",
+            JOptionPane.showMessageDialog(null,
+                    "Não é possível iniciar chat. Usuário indisponível.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         initializeUI();
+        atualizarBotaoStatus(); // garante que o botão inicial esteja correto
     }
 
     private void initializeUI() {
@@ -39,7 +42,7 @@ public class UserSessionWindow extends JFrame {
         messageField = new JTextField();
         messageField.addActionListener(e -> sendMessage());
 
-        JButton sendButton = new JButton("Enviar");
+        sendButton = new JButton("Enviar"); // usa o atributo da classe
         sendButton.addActionListener(e -> sendMessage());
 
         JButton endChatButton = new JButton("Encerrar Chat");
@@ -92,9 +95,17 @@ public class UserSessionWindow extends JFrame {
         chatArea.setCaretPosition(chatArea.getDocument().getLength());
     }
 
-    // ===== Atualizar usuário =====
+    // Atualiza botão de envio e campo de texto conforme status do usuário
+    private void atualizarBotaoStatus() {
+        boolean disponivel = !"indisponivel".equalsIgnoreCase(usuario.getStatus());
+        sendButton.setEnabled(disponivel);
+        messageField.setEditable(disponivel);
+    }
+
+    // Atualiza usuário e interface
     public void atualizarUsuario(User usuario) {
         this.usuario = usuario;
         setTitle("Chat com " + usuario.getNome());
+        atualizarBotaoStatus();
     }
 }
