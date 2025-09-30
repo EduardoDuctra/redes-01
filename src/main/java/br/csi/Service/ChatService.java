@@ -29,6 +29,17 @@ public class ChatService {
         this.socket = new DatagramSocket(8080);
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String novoStatus) {
+        this.status = novoStatus;
+        // Sempre que o status mudar, envie uma sonda para atualizar os outros usuários
+        enviarSonda();
+    }
+
+
     // ===== Getters =====
     public String getNomeUsuario() { return nomeUsuario; }
     public Map<String, User> getUsuariosConectados() { return usuariosConectados; }
@@ -110,6 +121,8 @@ public class ChatService {
 
                     if (msg.getRemetente().equals(nomeUsuario)) continue;
 
+                    if ("indisponivel".equalsIgnoreCase(this.status)) continue;
+
                     long agora = System.currentTimeMillis();
                     User u = usuariosConectados.get(msg.getRemetente());
                     if (u == null) {
@@ -169,6 +182,12 @@ public class ChatService {
     }
 
     public void enviarMensagemIndividual(String destinatario, String conteudo) {
+        User usuario = usuariosConectados.get(destinatario);
+        if (usuario != null && "indisponivel".equalsIgnoreCase(usuario.getStatus())) {
+            System.out.println("⚠️ Usuário " + destinatario + " está indisponível. Mensagem não enviada.");
+            return;
+        }
+
         try {
             Mensagem msg = Mensagem.criarMsgIndividual(nomeUsuario, destinatario, conteudo);
             enviarMensagemBroadcast(msg.toJson().toString());

@@ -19,6 +19,8 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     private Map<String, UserSessionWindow> sessoes;
     private GroupChatWindow janelaGrupo;
 
+    private JComboBox<String> comboStatus; // Novo: ComboBox para status
+
     public ChatP2PUI(ChatService chatService) {
         this.chatService = chatService;
         this.sessoes = new HashMap<>();
@@ -47,9 +49,21 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         JButton botaoGrupo = new JButton("Chat em Grupo");
         botaoGrupo.addActionListener(e -> abrirChatGrupo());
 
+        // Novo: ComboBox para status
+        comboStatus = new JComboBox<>(new String[]{"Disponível", "Indisponível"});
+        comboStatus.setSelectedItem("Disponível");
+        comboStatus.addActionListener(e -> {
+            String statusSelecionado = (String) comboStatus.getSelectedItem();
+            chatService.setStatus(statusSelecionado.toLowerCase()); // atualiza no serviço
+        });
+
+        JPanel topoPanel = new JPanel(new BorderLayout());
+        topoPanel.add(comboStatus, BorderLayout.WEST);
+        topoPanel.add(botaoGrupo, BorderLayout.EAST);
+
         setLayout(new BorderLayout());
         add(new JScrollPane(listaUsuarios), BorderLayout.CENTER);
-        add(botaoGrupo, BorderLayout.SOUTH);
+        add(topoPanel, BorderLayout.NORTH);
     }
 
     // ===== Métodos para abrir janelas de chat =====
@@ -59,7 +73,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
 
         UserSessionWindow sessao = sessoes.get(usuario.getNome());
         if (sessao == null) {
-            sessao = new UserSessionWindow(usuario, chatService); // passar o objeto User
+            sessao = new UserSessionWindow(usuario, chatService);
             sessoes.put(usuario.getNome(), sessao);
         }
         sessao.setVisible(true);
@@ -79,7 +93,6 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     @Override
     public void usuarioRemovido(User usuario) {
         SwingUtilities.invokeLater(() -> {
-            modeloUsuarios.removeElement(usuario.getNome());
             UserSessionWindow sessao = sessoes.remove(usuario.getNome());
             if (sessao != null) sessao.dispose();
         });
@@ -87,15 +100,15 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
 
     @Override
     public void usuarioAlterado(User usuario) {
-        SwingUtilities.invokeLater(() -> {
-            // Atualiza status do usuário na lista, se necessário
-            listaUsuarios.repaint();
-        });
+        SwingUtilities.invokeLater(() -> listaUsuarios.repaint());
     }
 
     // ===== MessageListener =====
     @Override
     public void mensagemRecebida(String mensagem, User remetente, boolean chatGeral) {
+        // Se usuário está indisponível, não processa mensagens individuais
+        if (!chatGeral && chatService.getStatus().equalsIgnoreCase("indisponivel")) return;
+
         SwingUtilities.invokeLater(() -> {
             if (chatGeral) {
                 if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);
@@ -113,22 +126,14 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         });
     }
 
-
+    // ===== Fim chat =====
     public void fimChatRecebido(User usuario) {
         SwingUtilities.invokeLater(() -> {
-            // Recupera a sessão correspondente
             UserSessionWindow sessao = sessoes.remove(usuario.getNome());
-
             if (sessao != null) {
-                // Adiciona mensagem informando que o outro usuário encerrou
                 sessao.addMessage("⚠️ " + usuario.getNome() + " encerrou o chat.");
-
-                // Fecha a janela após 3 segundos
                 new Timer(3000, e -> sessao.dispose()).start();
             }
-
-            // NÃO remove o usuário da lista de contatos
-            // modeloUsuarios.removeElement(usuario.getNome()); <-- REMOVER ESSA LINHA
         });
     }
 }
