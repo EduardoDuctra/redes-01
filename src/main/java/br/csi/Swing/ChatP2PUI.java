@@ -41,19 +41,35 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         listaUsuarios = new JList<>(modeloUsuarios);
         listaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Renderiza usuários indisponíveis em cinza
+        // Renderiza usuários com bolinha verde (ativo) ou amarela (inativo)
         listaUsuarios.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                           boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+                JPanel panel = new JPanel(new BorderLayout());
+                panel.setOpaque(true);
+
+                JLabel nomeLabel = new JLabel(value.toString());
                 User u = chatService.getUsuariosConectados().get(value.toString());
-                if (u != null && "indisponivel".equalsIgnoreCase(u.getStatus())) {
-                    c.setForeground(Color.LIGHT_GRAY);
+
+                // Bolinha de status
+                JLabel statusLabel = new JLabel("\u25CF"); // círculo Unicode
+                statusLabel.setForeground((u != null && "disponivel".equalsIgnoreCase(u.getStatus())) ? Color.GREEN : Color.YELLOW);
+
+                panel.add(statusLabel, BorderLayout.WEST);
+                panel.add(nomeLabel, BorderLayout.CENTER);
+
+                // Mantém a seleção visual
+                if (isSelected) {
+                    panel.setBackground(list.getSelectionBackground());
+                    nomeLabel.setForeground(list.getSelectionForeground());
                 } else {
-                    c.setForeground(Color.BLACK);
+                    panel.setBackground(list.getBackground());
+                    nomeLabel.setForeground(list.getForeground());
                 }
-                return c;
+
+                return panel;
             }
         });
 
@@ -94,7 +110,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         }
 
         // Bloqueia se indisponível ou inativo
-        if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
+        if (!"disponivel".equalsIgnoreCase(usuario.getStatus())) {
             JOptionPane.showMessageDialog(this, "Usuário indisponível ou inativo.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -106,6 +122,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         }
         sessao.setVisible(true);
     }
+
     // ===== Abrir chat em grupo =====
     public void abrirChatGrupo() {
         if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);
