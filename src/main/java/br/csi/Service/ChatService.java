@@ -85,13 +85,18 @@ public class ChatService implements UDPService {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                long agora = System.currentTimeMillis();
-                for (User u : usuariosConectados.values()) {
-                    System.out.println(u.getNome() + " - status: " + u.getStatus() +
-                            " - últimos sinal: " + (agora - u.getUltimoSinal()) + "ms atrás");
+                System.out.println("=== USUÁRIOS ATIVOS (últimos 10s) ===");
+                if (usuariosConectados.isEmpty()) {
+                    System.out.println("Nenhum usuário ativo");
+                } else {
+                    long agora = System.currentTimeMillis();
+                    for (User u : usuariosConectados.values()) {
+                        System.out.println(u.getNome() + " - status: " + u.getStatus() +
+                                " - último sinal: " + (agora - u.getUltimoSinal()) + "ms atrás");
+                    }
                 }
             }
-        }, 0, 10000);
+        }, 0, 10000); // Executa a cada 10s
     }
 
     private void removerUsuariosInativos() {
@@ -100,15 +105,18 @@ public class ChatService implements UDPService {
             public void run() {
                 long agora = System.currentTimeMillis();
                 for (User u : new ArrayList<>(usuariosConectados.values())) {
-                    if (agora - u.getUltimoSinal() > 30000) {
+                    if (agora - u.getUltimoSinal() > 30000) { // 30s sem sinal
                         usuariosConectados.remove(u.getNome());
-                        for (UserListener l : userListeners) l.usuarioRemovido(u);
+                        System.out.println("⚠️ Usuário removido por inatividade: " + u.getNome());
+
+                        for (UserListener l : userListeners) {
+                            l.usuarioRemovido(u);
+                        }
                     }
                 }
             }
-        }, 0, 5000);
+        }, 0, 5000); // Verifica a cada 5s
     }
-
     private void receberMensagensAsync() {
         new Thread(() -> {
             byte[] buffer = new byte[1024];
