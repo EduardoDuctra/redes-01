@@ -5,6 +5,7 @@ import br.csi.Listener.UserListener;
 import br.csi.Model.Mensagem;
 import br.csi.Model.TipoMensagem;
 import br.csi.Model.User;
+import br.csi.Swing.ChatP2PUI;
 
 import java.net.*;
 import java.util.*;
@@ -129,12 +130,19 @@ public class ChatService {
 
                     switch (msg.getTipo()) {
                         case MSG_INDIVIDUAL:
+                            for (MessageListener l : messageListeners)
+                                l.mensagemRecebida(msg.getConteudo(), u, false); // false = mensagem privada
+                            break;
                         case MSG_GRUPO:
                             for (MessageListener l : messageListeners)
-                                l.mensagemRecebida(msg.getConteudo(), u);
+                                l.mensagemRecebida(msg.getConteudo(), u, true); // true = mensagem de grupo
                             break;
                         case FIM_CHAT:
-                            // opcional: tratar fim de chat se quiser
+                            for (UserListener l : userListeners) {
+                                if (l instanceof ChatP2PUI) {
+                                    ((ChatP2PUI) l).fimChatRecebido(u); // chama a função da UI
+                                }
+                            }
                             break;
                         case SONDA:
                             // já tratado no status

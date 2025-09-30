@@ -4,5 +4,5 @@ import br.csi.Model.User;
 
 public interface MessageListener {
 
-    void mensagemRecebida(String mensagem, User remetente);
+    void mensagemRecebida(String mensagem, User remetente, boolean chatGeral);
 }

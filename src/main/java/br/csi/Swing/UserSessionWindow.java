@@ -35,10 +35,7 @@ public class UserSessionWindow extends JFrame {
         sendButton.addActionListener(e -> sendMessage());
 
         JButton endChatButton = new JButton("Encerrar Chat");
-        endChatButton.addActionListener(e -> {
-            chatService.enviarFimChat(usuario.getNome());
-            dispose();
-        });
+        endChatButton.addActionListener(e -> encerrarChat());
 
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
@@ -52,6 +49,21 @@ public class UserSessionWindow extends JFrame {
 
         bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+    private void encerrarChat() {
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Deseja realmente encerrar o chat com " + usuario.getNome() + "?",
+                "Encerrar Chat",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Envia mensagem de fim de chat
+            chatService.enviarFimChat(usuario.getNome());
+
+            // Fecha a janela
+            dispose();
+        }
     }
 
     private void sendMessage() {

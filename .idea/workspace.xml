@@ -5,20 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/br/csi/Listener/MessageListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/br/csi/Listener/UDPService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/br/csi/Listener/UserListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/br/csi/Model/Mensagem.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/br/csi/Model/TipoMensagem.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/ChatP2PUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/ChatP2PUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/ChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Service/ChatService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/GroupChatWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/GroupChatWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/TestJson.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Test/TestJson.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/UserSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/UserSessionWindow.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/UsuarioOnline.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Swing/ChatP2PUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/ChatP2PUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Swing/UserSessionWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/UserSessionWindow.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +108,7 @@
       <workItem from="1758883429622" duration="48000" />
       <workItem from="1759008097293" duration="2149000" />
       <workItem from="1759094108004" duration="3366000" />
-      <workItem from="1759264845852" duration="2975000" />
+      <workItem from="1759264845852" duration="3629000" />
     </task>
     <servers />
   </component>

@@ -95,9 +95,8 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
 
     // ===== MessageListener =====
     @Override
-    public void mensagemRecebida(String mensagem, User remetente) {
+    public void mensagemRecebida(String mensagem, User remetente, boolean chatGeral) {
         SwingUtilities.invokeLater(() -> {
-            boolean chatGeral = false; // Se quiser diferenciar grupo x individual, passe pelo ChatService
             if (chatGeral) {
                 if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);
                 janelaGrupo.addMessage(remetente.getNome() + ": " + mensagem);
@@ -113,4 +112,23 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
             }
         });
     }
+
+    public void fimChatRecebido(User usuario) {
+        SwingUtilities.invokeLater(() -> {
+            // Recupera a sessão correspondente
+            UserSessionWindow sessao = sessoes.remove(usuario.getNome());
+
+            if (sessao != null) {
+                // Adiciona mensagem informando que o outro usuário encerrou
+                sessao.addMessage("⚠️ " + usuario.getNome() + " encerrou o chat.");
+
+                // Fecha a janela após 3 segundos
+                new Timer(3000, e -> sessao.dispose()).start();
+            }
+
+            // Remove o usuário da lista de contatos
+            modeloUsuarios.removeElement(usuario.getNome());
+        });
+    }
+
 }
