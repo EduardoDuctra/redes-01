@@ -19,7 +19,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     private Map<String, UserSessionWindow> sessoes;
     private GroupChatWindow janelaGrupo;
 
-    private JComboBox<String> comboStatus; // Novo: ComboBox para status
+    private JComboBox<String> comboStatus; // ComboBox para status
 
     public ChatP2PUI(ChatService chatService) {
         this.chatService = chatService;
@@ -40,6 +40,23 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
 
         listaUsuarios = new JList<>(modeloUsuarios);
         listaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // Renderiza usuários indisponíveis em cinza
+        listaUsuarios.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                User u = chatService.getUsuariosConectados().get(value.toString());
+                if (u != null && "indisponivel".equalsIgnoreCase(u.getStatus())) {
+                    c.setForeground(Color.LIGHT_GRAY);
+                } else {
+                    c.setForeground(Color.BLACK);
+                }
+                return c;
+            }
+        });
+
         listaUsuarios.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) abrirJanelaChat(listaUsuarios.getSelectedValue());
@@ -49,12 +66,11 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         JButton botaoGrupo = new JButton("Chat em Grupo");
         botaoGrupo.addActionListener(e -> abrirChatGrupo());
 
-        // Novo: ComboBox para status
         comboStatus = new JComboBox<>(new String[]{"Disponível", "Indisponível"});
         comboStatus.setSelectedItem("Disponível");
         comboStatus.addActionListener(e -> {
             String statusSelecionado = (String) comboStatus.getSelectedItem();
-            chatService.setStatus(statusSelecionado.toLowerCase()); // atualiza no serviço
+            chatService.setStatus(statusSelecionado.toLowerCase());
         });
 
         JPanel topoPanel = new JPanel(new BorderLayout());
@@ -66,10 +82,16 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         add(topoPanel, BorderLayout.NORTH);
     }
 
-    // ===== Métodos para abrir janelas de chat =====
+    // ===== Abrir chat individual =====
     public void abrirJanelaChat(String nomeUsuario) {
         User usuario = chatService.getUsuariosConectados().get(nomeUsuario);
-        if (usuario == null || "indisponivel".equalsIgnoreCase(usuario.getStatus())) {
+
+        if (usuario == null) {
+            JOptionPane.showMessageDialog(this, "Usuário não está mais conectado.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
             JOptionPane.showMessageDialog(this, "Usuário indisponível.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -82,6 +104,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         sessao.setVisible(true);
     }
 
+    // ===== Abrir chat em grupo =====
     public void abrirChatGrupo() {
         if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);
         janelaGrupo.setVisible(true);
@@ -96,9 +119,9 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     @Override
     public void usuarioRemovido(User usuario) {
         SwingUtilities.invokeLater(() -> {
-            modeloUsuarios.removeElement(usuario.getNome()); // remove da lista
+            modeloUsuarios.removeElement(usuario.getNome());
             UserSessionWindow sessao = sessoes.remove(usuario.getNome());
-            if (sessao != null) sessao.dispose(); // fecha chat se estiver aberto
+            if (sessao != null) sessao.dispose();
         });
     }
 
