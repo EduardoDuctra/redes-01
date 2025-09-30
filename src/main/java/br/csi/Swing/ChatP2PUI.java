@@ -18,7 +18,6 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     private JList<String> listaUsuarios;
     private Map<String, UserSessionWindow> sessoes;
     private GroupChatWindow janelaGrupo;
-
     private JComboBox<String> comboStatus; // ComboBox para status
 
     public ChatP2PUI(ChatService chatService) {
@@ -38,6 +37,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // Lista de usuários
         listaUsuarios = new JList<>(modeloUsuarios);
         listaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -55,7 +55,11 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
 
                 // Bolinha de status
                 JLabel statusLabel = new JLabel("\u25CF"); // círculo Unicode
-                statusLabel.setForeground((u != null && "disponivel".equalsIgnoreCase(u.getStatus())) ? Color.GREEN : Color.YELLOW);
+                if (u != null) {
+                    statusLabel.setForeground("disponivel".equalsIgnoreCase(u.getStatus()) ? Color.GREEN : Color.YELLOW);
+                } else {
+                    statusLabel.setForeground(Color.GRAY);
+                }
 
                 panel.add(statusLabel, BorderLayout.WEST);
                 panel.add(nomeLabel, BorderLayout.CENTER);
@@ -79,14 +83,19 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
             }
         });
 
+        // Botão para chat em grupo
         JButton botaoGrupo = new JButton("Chat em Grupo");
         botaoGrupo.addActionListener(e -> abrirChatGrupo());
 
+        // ComboBox para status
         comboStatus = new JComboBox<>(new String[]{"Disponível", "Indisponível"});
         comboStatus.setSelectedItem("Disponível");
         comboStatus.addActionListener(e -> {
-            String statusSelecionado = (String) comboStatus.getSelectedItem();
-            chatService.setStatus(statusSelecionado.toLowerCase());
+            String statusSelecionado = ((String) comboStatus.getSelectedItem()).toLowerCase();
+            chatService.setStatus(statusSelecionado);
+
+            // Atualiza a bolinha e a lista imediatamente
+            listaUsuarios.repaint();
         });
 
         JPanel topoPanel = new JPanel(new BorderLayout());
@@ -109,7 +118,7 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
             return;
         }
 
-        // Bloqueia se indisponível ou inativo
+        // Bloqueia se indisponível
         if (!"disponivel".equalsIgnoreCase(usuario.getStatus())) {
             JOptionPane.showMessageDialog(this, "Usuário indisponível ou inativo.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
@@ -148,8 +157,6 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     public void usuarioAlterado(User usuario) {
         SwingUtilities.invokeLater(() -> {
             listaUsuarios.repaint();
-
-            // Atualiza a janela de chat se ela estiver aberta
             UserSessionWindow sessao = sessoes.get(usuario.getNome());
             if (sessao != null) {
                 sessao.atualizarUsuario(usuario);
@@ -160,9 +167,6 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     // ===== MessageListener =====
     @Override
     public void mensagemRecebida(String mensagem, User remetente, boolean chatGeral) {
-        // Se usuário está indisponível, não processa mensagens individuais
-        if (!chatGeral && chatService.getStatus().equalsIgnoreCase("indisponivel")) return;
-
         SwingUtilities.invokeLater(() -> {
             if (chatGeral) {
                 if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);

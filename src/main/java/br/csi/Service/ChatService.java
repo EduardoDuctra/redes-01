@@ -28,6 +28,10 @@ public class ChatService implements UDPService {
         this.messageListeners = new CopyOnWriteArrayList<>();
         this.userListeners = new CopyOnWriteArrayList<>();
         this.socket = new DatagramSocket(8080);
+
+        // Cria o próprio usuário no mapa desde o início
+        User self = new User(nomeUsuario, status, System.currentTimeMillis());
+        usuariosConectados.put(nomeUsuario, self);
     }
 
     public String getStatus() {
@@ -38,17 +42,11 @@ public class ChatService implements UDPService {
         this.status = novoStatus;
         enviarSonda();
 
-        // Atualiza o próprio usuário no mapa
+        // Atualiza o próprio usuário no mapa e notifica listeners
         User self = usuariosConectados.get(nomeUsuario);
-        if (self == null) {
-            self = new User(nomeUsuario, status, System.currentTimeMillis());
-            usuariosConectados.put(nomeUsuario, self);
-        } else {
-            self.setStatus(status);
-            self.setUltimoSinal(System.currentTimeMillis());
-        }
+        self.setStatus(status);
+        self.setUltimoSinal(System.currentTimeMillis());
 
-        // Notifica os listeners
         for (UserListener l : userListeners) {
             l.usuarioAlterado(self);
         }
@@ -120,7 +118,7 @@ public class ChatService implements UDPService {
             public void run() {
                 long agora = System.currentTimeMillis();
                 for (User u : new ArrayList<>(usuariosConectados.values())) {
-                    if (agora - u.getUltimoSinal() > 30000) { // 30s sem sinal
+                    if (!u.getNome().equals(nomeUsuario) && agora - u.getUltimoSinal() > 30000) {
                         usuariosConectados.remove(u.getNome());
                         System.out.println("⚠️ Usuário removido por inatividade: " + u.getNome());
 
@@ -132,6 +130,7 @@ public class ChatService implements UDPService {
             }
         }, 0, 5000); // Verifica a cada 5s
     }
+
     private void receberMensagensAsync() {
         new Thread(() -> {
             byte[] buffer = new byte[1024];
@@ -143,36 +142,55 @@ public class ChatService implements UDPService {
                     String dados = new String(pacote.getData(), 0, pacote.getLength());
                     Mensagem msg = Mensagem.fromJson(new org.json.JSONObject(dados));
 
-                    if (msg.getRemetente().equals(nomeUsuario)) continue;
+                    // Ignora a própria sonda, para não sobrescrever o status
+                    if (msg.getRemetente().equals(nomeUsuario) && msg.getTipo() == TipoMensagem.SONDA) {
+                        continue;
+                    }
 
                     long agora = System.currentTimeMillis();
                     User remetente = usuariosConectados.get(msg.getRemetente());
 
                     if (remetente == null) {
-                        remetente = new User(msg.getRemetente(),
-                                msg.getTipo() == TipoMensagem.SONDA ? msg.getConteudo() : "disponivel",
-                                agora);
+                        // Novo usuário encontrado
+                        String statusInicial = msg.getTipo() == TipoMensagem.SONDA ? msg.getConteudo() : "disponivel";
+                        remetente = new User(msg.getRemetente(), statusInicial, agora);
                         usuariosConectados.put(remetente.getNome(), remetente);
-                        for (UserListener l : userListeners) l.usuarioAdicionado(remetente);
+
+                        for (UserListener l : userListeners) {
+                            l.usuarioAdicionado(remetente);
+                        }
                     } else {
+                        // Usuário existente, atualiza último sinal
                         remetente.setUltimoSinal(agora);
+
                         if (msg.getTipo() == TipoMensagem.SONDA) {
-                            remetente.setStatus(msg.getConteudo());
-                            for (UserListener l : userListeners) l.usuarioAlterado(remetente);
+                            // Atualiza status apenas se for diferente do atual
+                            if (!remetente.getStatus().equalsIgnoreCase(msg.getConteudo())) {
+                                remetente.setStatus(msg.getConteudo());
+                                for (UserListener l : userListeners) {
+                                    l.usuarioAlterado(remetente);
+                                }
+                            }
                         }
                     }
 
+                    // Bloqueia mensagens individuais de usuários indisponíveis
                     if ("indisponivel".equalsIgnoreCase(remetente.getStatus())) continue;
 
+                    // Processa mensagens
                     switch (msg.getTipo()) {
                         case MSG_INDIVIDUAL:
-                            for (MessageListener l : messageListeners)
+                            for (MessageListener l : messageListeners) {
                                 l.mensagemRecebida(msg.getConteudo(), remetente, false);
+                            }
                             break;
+
                         case MSG_GRUPO:
-                            for (MessageListener l : messageListeners)
+                            for (MessageListener l : messageListeners) {
                                 l.mensagemRecebida(msg.getConteudo(), remetente, true);
+                            }
                             break;
+
                         case FIM_CHAT:
                             for (UserListener l : userListeners) {
                                 if (l instanceof ChatP2PUI) {
@@ -180,7 +198,9 @@ public class ChatService implements UDPService {
                                 }
                             }
                             break;
+
                         case SONDA:
+                            // Nenhuma ação extra
                             break;
                     }
 
@@ -190,7 +210,6 @@ public class ChatService implements UDPService {
             }
         }).start();
     }
-
     private void enviarMensagemBroadcast(String mensagem) {
         try {
             byte[] dados = mensagem.getBytes();
