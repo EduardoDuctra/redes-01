@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Service/ChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Service/ChatService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Swing/ChatP2PUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/ChatP2PUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Swing/UserSessionWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/UserSessionWindow.java" afterDir="false" />
-    </list>
+    <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -109,7 +104,7 @@
       <workItem from="1758883429622" duration="48000" />
       <workItem from="1759008097293" duration="2149000" />
       <workItem from="1759094108004" duration="3366000" />
-      <workItem from="1759264845852" duration="8069000" />
+      <workItem from="1759264845852" duration="8365000" />
     </task>
     <servers />
   </component>

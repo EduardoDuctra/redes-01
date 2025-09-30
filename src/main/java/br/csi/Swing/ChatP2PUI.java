@@ -93,8 +93,9 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
             return;
         }
 
+        // Bloqueia se indisponível ou inativo
         if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
-            JOptionPane.showMessageDialog(this, "Usuário indisponível.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Usuário indisponível ou inativo.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
