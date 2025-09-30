@@ -104,7 +104,7 @@ public class ChatService {
 
                         // Atualiza a interface local removendo da lista de transmissão
                         for (UserListener l : userListeners) {
-                            l.usuarioRemovido(u);
+                            l.usuarioRemovido(u); // A interface (ChatP2PUI) vai remover da lista de transmissão
                         }
                     }
                 }
@@ -197,8 +197,12 @@ public class ChatService {
     public void enviarMensagemIndividual(String destinatario, String conteudo) {
         User usuario = usuariosConectados.get(destinatario);
 
-        // Bloqueia envio se o destinatário estiver indisponível
-        if (usuario != null && "indisponivel".equalsIgnoreCase(usuario.getStatus())) {
+        if (usuario == null) {
+            System.out.println("⚠️ Mensagem não enviada. Usuário " + destinatario + " não está mais conectado.");
+            return;
+        }
+
+        if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
             System.out.println("⚠️ Mensagem não enviada. Usuário " + destinatario + " está indisponível.");
             return;
         }

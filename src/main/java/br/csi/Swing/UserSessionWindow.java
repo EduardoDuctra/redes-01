@@ -16,6 +16,14 @@ public class UserSessionWindow extends JFrame {
     public UserSessionWindow(User usuario, ChatService service) {
         this.usuario = usuario;
         this.chatService = service;
+
+        // Bloqueia criação da janela se usuário estiver indisponível
+        if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
+            JOptionPane.showMessageDialog(null, "Não é possível iniciar chat. Usuário indisponível.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         initializeUI();
     }
 
@@ -58,15 +66,19 @@ public class UserSessionWindow extends JFrame {
                 JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // Envia mensagem de fim de chat
             chatService.enviarFimChat(usuario.getNome());
-
-            // Fecha a janela
             dispose();
         }
     }
 
     private void sendMessage() {
+        if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
+            JOptionPane.showMessageDialog(this,
+                    "Não é possível enviar mensagem. Usuário indisponível.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         String msg = messageField.getText().trim();
         if (!msg.isEmpty()) {
             chatService.enviarMensagemIndividual(usuario.getNome(), msg);

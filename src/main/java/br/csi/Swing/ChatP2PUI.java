@@ -96,8 +96,9 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
     @Override
     public void usuarioRemovido(User usuario) {
         SwingUtilities.invokeLater(() -> {
+            modeloUsuarios.removeElement(usuario.getNome()); // remove da lista
             UserSessionWindow sessao = sessoes.remove(usuario.getNome());
-            if (sessao != null) sessao.dispose();
+            if (sessao != null) sessao.dispose(); // fecha chat se estiver aberto
         });
     }
 
