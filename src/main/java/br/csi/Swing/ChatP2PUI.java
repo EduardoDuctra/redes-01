@@ -88,8 +88,8 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         botaoGrupo.addActionListener(e -> abrirChatGrupo());
 
         // ComboBox para status
-        comboStatus = new JComboBox<>(new String[]{"Disponível", "Indisponível"});
-        comboStatus.setSelectedItem("Disponível");
+        comboStatus = new JComboBox<>(new String[]{"disponivel", "indisponivel"});
+        comboStatus.setSelectedItem("disponivel");
         comboStatus.addActionListener(e -> {
             String statusSelecionado = ((String) comboStatus.getSelectedItem()).toLowerCase();
             chatService.setStatus(statusSelecionado);
