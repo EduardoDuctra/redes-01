@@ -1,8 +1,8 @@
 package br.csi.Swing;
 
-import br.csi.Model.User;
 import br.csi.Model.Mensagem;
 import br.csi.Model.TipoMensagem;
+import br.csi.Model.User;
 import br.csi.Service.ChatService;
 
 import javax.swing.*;
@@ -50,7 +50,8 @@ public class GroupChatWindow extends JFrame {
     private void sendMessage() {
         String msgTexto = messageField.getText().trim();
         if (!msgTexto.isEmpty()) {
-            chatService.enviarMensagemGrupo(msgTexto);
+            // Agora usamos o método da interface
+            chatService.enviarMensagem(msgTexto, null, true); // null pois é chat em grupo
             addMessage("Você: " + msgTexto);
             messageField.setText("");
         }

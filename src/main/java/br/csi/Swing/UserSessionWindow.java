@@ -42,7 +42,7 @@ public class UserSessionWindow extends JFrame {
         messageField = new JTextField();
         messageField.addActionListener(e -> sendMessage());
 
-        sendButton = new JButton("Enviar"); // usa o atributo da classe
+        sendButton = new JButton("Enviar");
         sendButton.addActionListener(e -> sendMessage());
 
         JButton endChatButton = new JButton("Encerrar Chat");
@@ -69,7 +69,8 @@ public class UserSessionWindow extends JFrame {
                 JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            chatService.enviarFimChat(usuario.getNome());
+            // Usando método da interface
+            chatService.enviarMensagem(null, usuario, false); // Fim do chat não precisa de texto
             dispose();
         }
     }
@@ -84,7 +85,8 @@ public class UserSessionWindow extends JFrame {
 
         String msg = messageField.getText().trim();
         if (!msg.isEmpty()) {
-            chatService.enviarMensagemIndividual(usuario.getNome(), msg);
+            // Agora chamamos diretamente o método da interface
+            chatService.enviarMensagem(msg, usuario, false);
             addMessage("Você: " + msg);
             messageField.setText("");
         }

@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Service/ChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Service/ChatService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +47,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "E:/Downloads/chat-redes-2025",
+    "last_opened_file_path": "E:/UFSM/2025_2/Redes/Trabalho1/19_09/redes-01",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -108,6 +107,8 @@
       <workItem from="1759008097293" duration="2149000" />
       <workItem from="1759094108004" duration="3366000" />
       <workItem from="1759264845852" duration="10109000" />
+      <workItem from="1759345186563" duration="13000" />
+      <workItem from="1759700260465" duration="368000" />
     </task>
     <servers />
   </component>
