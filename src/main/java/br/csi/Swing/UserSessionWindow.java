@@ -69,8 +69,7 @@ public class UserSessionWindow extends JFrame {
                 JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // Usando método da interface
-            chatService.enviarMensagem(null, usuario, false); // Fim do chat não precisa de texto
+            chatService.enviarFimChat(usuario.getNome()); // usa o método específico
             dispose();
         }
     }
