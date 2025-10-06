@@ -11,27 +11,30 @@ public class UserSessionWindow extends JFrame {
     private User usuario;
     private ChatService chatService;
     private JTextArea chatArea;
-    private JTextField messageField;
-    private JButton sendButton; // agora é atributo da classe
+    private JTextField mensagemArea;
+    private JButton enviarBotao;
+    private boolean chatGrupo;
 
+    //chat individual
     public UserSessionWindow(User usuario, ChatService service) {
         this.usuario = usuario;
         this.chatService = service;
-
-        // Bloqueia criação da janela se usuário estiver indisponível
-        if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
-            JOptionPane.showMessageDialog(null,
-                    "Não é possível iniciar chat. Usuário indisponível.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        this.chatGrupo = false;
 
         initializeUI();
-        atualizarBotaoStatus(); // garante que o botão inicial esteja correto
+        atualizarBotaoStatus();
+    }
+
+    //chat grupo
+    public UserSessionWindow(ChatService service) {
+        this.usuario = null;
+        this.chatService = service;
+        this.chatGrupo = true;
+
+        initializeUI();
     }
 
     private void initializeUI() {
-        setTitle("Chat com " + usuario.getNome());
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -39,71 +42,92 @@ public class UserSessionWindow extends JFrame {
         chatArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(chatArea);
 
-        messageField = new JTextField();
-        messageField.addActionListener(e -> sendMessage());
+        mensagemArea = new JTextField();
+        mensagemArea.addActionListener(e -> sendMessage());
 
-        sendButton = new JButton("Enviar");
-        sendButton.addActionListener(e -> sendMessage());
-
-        JButton endChatButton = new JButton("Encerrar Chat");
-        endChatButton.addActionListener(e -> encerrarChat());
+        enviarBotao = new JButton("Enviar");
+        enviarBotao.addActionListener(e -> sendMessage());
 
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(messageField, BorderLayout.CENTER);
+        bottomPanel.add(mensagemArea, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 0));
-        buttonPanel.add(sendButton);
-        buttonPanel.add(endChatButton);
+        buttonPanel.add(enviarBotao);
+
+        // Botão de encerrar no chat individual
+        if (!chatGrupo) {
+            JButton endChatButton = new JButton("Encerrar Chat");
+            endChatButton.addActionListener(e -> encerrarChat());
+            buttonPanel.add(endChatButton);
+        }
 
         bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
+
+
+        if (chatGrupo) {
+            setTitle("Chat em Grupo");
+        } else {
+            setTitle("Chat com " + usuario.getNome());
+        }
     }
 
+
     private void encerrarChat() {
-        int confirm = JOptionPane.showConfirmDialog(this,
+        String[] opcoes = {"Sim", "Não"};
+        int confirm = JOptionPane.showOptionDialog(
+                this,
                 "Deseja realmente encerrar o chat com " + usuario.getNome() + "?",
                 "Encerrar Chat",
-                JOptionPane.YES_NO_OPTION);
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opcoes,
+                opcoes[0]
+        );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            chatService.enviarFimChat(usuario.getNome()); // usa o método específico
+            chatService.enviarFimChat(usuario.getNome());
             dispose();
         }
     }
 
-    private void sendMessage() {
-        if ("indisponivel".equalsIgnoreCase(usuario.getStatus())) {
-            JOptionPane.showMessageDialog(this,
-                    "Não é possível enviar mensagem. Usuário indisponível.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
 
-        String msg = messageField.getText().trim();
-        if (!msg.isEmpty()) {
-            // Agora chamamos diretamente o método da interface
-            chatService.enviarMensagem(msg, usuario, false);
-            addMessage("Você: " + msg);
-            messageField.setText("");
-        }
+
+    private void sendMessage() {
+        String msg = mensagemArea.getText().trim();
+
+        chatService.enviarMensagem(msg, usuario, chatGrupo);
+        addMessage("Você: " + msg);
+        mensagemArea.setText("");
     }
 
+
+    //exibe a mensagem recebida na área do chat
     public void addMessage(String msg) {
         chatArea.append(msg + "\n");
         chatArea.setCaretPosition(chatArea.getDocument().getLength());
     }
 
-    // Atualiza botão de envio e campo de texto conforme status do usuário
+    // se o status for indisponivel, bloqueia o campo de enviar menagem
     private void atualizarBotaoStatus() {
-        boolean disponivel = !"indisponivel".equalsIgnoreCase(usuario.getStatus());
-        sendButton.setEnabled(disponivel);
-        messageField.setEditable(disponivel);
+        if (!chatGrupo && usuario != null) {
+            boolean disponivel = !"indisponivel".equalsIgnoreCase(usuario.getStatus());
+            enviarBotao.setEnabled(disponivel);
+            mensagemArea.setEditable(disponivel);
+        } else {
+
+            //chat em grupo sempre pode mandar mensagem
+            enviarBotao.setEnabled(true);
+            mensagemArea.setEditable(true);
+        }
     }
 
-    // Atualiza usuário e interface
+
+    //atualiza o status do usuario e o nome dele
     public void atualizarUsuario(User usuario) {
         this.usuario = usuario;
         setTitle("Chat com " + usuario.getNome());

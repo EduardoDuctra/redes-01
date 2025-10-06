@@ -11,7 +11,6 @@ public class User {
         this.ultimoSinal = ultimoSinal;
     }
 
-    // ===== Getters e Setters =====
     public String getNome() {
         return nome;
     }
@@ -36,9 +35,4 @@ public class User {
         this.ultimoSinal = ultimoSinal;
     }
 
-    // ===== Utilitário =====
-    @Override
-    public String toString() {
-        return nome + " (" + status + ")";
-    }
 }

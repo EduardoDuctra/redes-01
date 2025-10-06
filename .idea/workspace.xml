@@ -6,7 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="7b525a7b-a339-4473-939f-2e742b99f26c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Model/Mensagem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Model/Mensagem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Model/TipoMensagem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Model/TipoMensagem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Swing/ChatP2PUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/ChatP2PUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Swing/GroupChatWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/GroupChatWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Swing/UserSessionWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Swing/UserSessionWindow.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/br/csi/Test/TestJson.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/br/csi/Test/TestJson.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +55,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "E:/UFSM/2025_2/Redes/Trabalho1/19_09/redes-01",
+    "last_opened_file_path": "E:/Downloads/trab-final-spi-deployados-main/trab-final-spi-deployados-main/app/sistema-agendamentos",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -109,7 +116,8 @@
       <workItem from="1759094108004" duration="3366000" />
       <workItem from="1759264845852" duration="10109000" />
       <workItem from="1759345186563" duration="13000" />
-      <workItem from="1759700260465" duration="1208000" />
+      <workItem from="1759700260465" duration="1337000" />
+      <workItem from="1759750131079" duration="8454000" />
     </task>
     <servers />
   </component>

@@ -9,11 +9,11 @@ public class Mensagem implements Serializable {
 
     private TipoMensagem tipo;
     private String remetente;
-    private String destinatario; // null para mensagens de grupo ou sonda
-    private String conteudo;     // texto da mensagem ou info da sonda
+    private String destinatario;
+    private String conteudo;
     private long timestamp;
 
-    // Construtor geral
+
     public Mensagem(TipoMensagem tipo, String remetente, String destinatario, String conteudo) {
         this.tipo = tipo;
         this.remetente = remetente;
@@ -22,7 +22,7 @@ public class Mensagem implements Serializable {
         this.timestamp = Instant.now().toEpochMilli();
     }
 
-    // ===== Getters e Setters =====
+
     public TipoMensagem getTipo() { return tipo; }
     public void setTipo(TipoMensagem tipo) { this.tipo = tipo; }
 
@@ -37,7 +37,12 @@ public class Mensagem implements Serializable {
 
     public long getTimestamp() { return timestamp; }
 
-    // ===== Métodos de fábrica para criar mensagens =====
+
+    //criação de objetos Mensagem de acordo com o Enum
+    //SONDA precisa ter remetente.
+    //MSG_INDIVIDUAL precisa ter origem, destino e conteudo
+    //MSG_GRUPO precisa ter origem e texto. Vai para todos
+    //FIM_CHAT apenas origem e destino
     public static Mensagem criarSonda(String remetente, String status) {
         return new Mensagem(TipoMensagem.SONDA, remetente, null, status);
     }
@@ -54,7 +59,9 @@ public class Mensagem implements Serializable {
         return new Mensagem(TipoMensagem.FIM_CHAT, remetente, destinatario, null);
     }
 
-    // ===== Serialização / Desserialização JSON =====
+
+
+    //Usa a dependencia externa e transforma a mensagem num JSON. Arquivo na pasta libs
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
         json.put("tipo", tipo.name());
@@ -65,7 +72,8 @@ public class Mensagem implements Serializable {
         return json;
     }
 
-    public static Mensagem fromJson(JSONObject json) {
+    // Converte o JSON recebido em objeto tipo Mensagem
+     public static Mensagem fromJson(JSONObject json) {
         TipoMensagem tipo = TipoMensagem.valueOf(json.getString("tipo"));
         String remetente = json.getString("remetente");
         String destinatario = json.optString("destinatario", null);

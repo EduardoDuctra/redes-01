@@ -15,34 +15,35 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
 
     private ChatService chatService;
     private DefaultListModel<String> modeloUsuarios;
-    private JList<String> listaUsuarios;
+    private JList<String> listaUsuariosConectados;
     private Map<String, UserSessionWindow> sessoes;
-    private GroupChatWindow janelaGrupo;
-    private JComboBox<String> comboStatus; // ComboBox para status
+    private UserSessionWindow janelaGrupo;
+    private JComboBox<String> comboStatus;
 
     public ChatP2PUI(ChatService chatService) {
         this.chatService = chatService;
         this.sessoes = new HashMap<>();
         this.modeloUsuarios = new DefaultListModel<>();
 
-        // Registra listeners
+
         chatService.addListenerMensagem(this);
         chatService.addListenerUsuario(this);
 
         inicializarInterface();
     }
 
+
     private void inicializarInterface() {
         setTitle("Chat P2P - " + chatService.getNomeUsuario());
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Lista de usuários
-        listaUsuarios = new JList<>(modeloUsuarios);
-        listaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        listaUsuariosConectados = new JList<>(modeloUsuarios);
+        listaUsuariosConectados.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Renderiza usuários com bolinha verde (ativo) ou amarela (inativo)
-        listaUsuarios.setCellRenderer(new DefaultListCellRenderer() {
+        listaUsuariosConectados.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                           boolean isSelected, boolean cellHasFocus) {
@@ -51,24 +52,28 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
                 panel.setOpaque(true);
 
                 JLabel nomeLabel = new JLabel(value.toString());
+                //Pega o User através do nome exibido na lista (value.toString();
+                // O método getUsuariosConectados() retorna um Map<String, User> com todos os usuários online.
                 User u = chatService.getUsuariosConectados().get(value.toString());
 
-                // Bolinha de status
-                JLabel statusLabel = new JLabel("\u25CF"); // círculo Unicode
+                //visualização do disponível/indisponível - status
+                JLabel statusLabel = new JLabel("\u25CF");
                 if (u != null) {
                     statusLabel.setForeground("disponivel".equalsIgnoreCase(u.getStatus()) ? Color.GREEN : Color.YELLOW);
-                } else {
+                }
+                else {
                     statusLabel.setForeground(Color.GRAY);
                 }
 
                 panel.add(statusLabel, BorderLayout.WEST);
                 panel.add(nomeLabel, BorderLayout.CENTER);
 
-                // Mantém a seleção visual
+
                 if (isSelected) {
                     panel.setBackground(list.getSelectionBackground());
                     nomeLabel.setForeground(list.getSelectionForeground());
-                } else {
+                }
+                else {
                     panel.setBackground(list.getBackground());
                     nomeLabel.setForeground(list.getForeground());
                 }
@@ -77,9 +82,13 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
             }
         });
 
-        listaUsuarios.addMouseListener(new MouseAdapter() {
+        //ouvinte do clique do mouse
+        //clicando duas vezes em cima do nome do User, abre a janela
+        listaUsuariosConectados.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) abrirJanelaChat(listaUsuarios.getSelectedValue());
+                if (e.getClickCount() == 2) {
+                    abrirChatIndividual(listaUsuariosConectados.getSelectedValue());
+                }
             }
         });
 
@@ -90,12 +99,15 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         // ComboBox para status
         comboStatus = new JComboBox<>(new String[]{"disponivel", "indisponivel"});
         comboStatus.setSelectedItem("disponivel");
+
+        //ouvinte para quando o User muda de status.
+        //Atualiza o status no chatService e renderiza novamente a bolinha de status
         comboStatus.addActionListener(e -> {
             String statusSelecionado = ((String) comboStatus.getSelectedItem()).toLowerCase();
             chatService.setStatus(statusSelecionado);
 
             // Atualiza a bolinha e a lista imediatamente
-            listaUsuarios.repaint();
+            listaUsuariosConectados.repaint();
         });
 
         JPanel topoPanel = new JPanel(new BorderLayout());
@@ -103,102 +115,103 @@ public class ChatP2PUI extends JFrame implements MessageListener, UserListener {
         topoPanel.add(botaoGrupo, BorderLayout.EAST);
 
         setLayout(new BorderLayout());
-        add(new JScrollPane(listaUsuarios), BorderLayout.CENTER);
+        add(new JScrollPane(listaUsuariosConectados), BorderLayout.CENTER);
         add(topoPanel, BorderLayout.NORTH);
     }
 
-    // ===== Abrir chat individual =====
-    public void abrirJanelaChat(String nomeUsuario) {
+    public void abrirChatIndividual(String nomeUsuario) {
+
         User usuario = chatService.getUsuariosConectados().get(nomeUsuario);
 
-        if (usuario == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Usuário não está mais conectado.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
+        UserSessionWindow janelaSessao = sessoes.get(usuario.getNome());
+        if (janelaSessao == null) {
+            janelaSessao = new UserSessionWindow(usuario, chatService);
+            sessoes.put(usuario.getNome(), janelaSessao);
         }
-
-        // Bloqueia se indisponível
-        if (!"disponivel".equalsIgnoreCase(usuario.getStatus())) {
-            JOptionPane.showMessageDialog(this, "Usuário indisponível ou inativo.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        UserSessionWindow sessao = sessoes.get(usuario.getNome());
-        if (sessao == null) {
-            sessao = new UserSessionWindow(usuario, chatService);
-            sessoes.put(usuario.getNome(), sessao);
-        }
-        sessao.setVisible(true);
+        janelaSessao.setVisible(true);
     }
 
-    // ===== Abrir chat em grupo =====
     public void abrirChatGrupo() {
-        if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);
+        if (janelaGrupo == null){
+            janelaGrupo = new UserSessionWindow(chatService);
+        }
         janelaGrupo.setVisible(true);
     }
 
-    // ===== UserListener =====
+
+    //UserListener
+    //sempre que um novo User entra, coloca ele na lista de Users ativos
     @Override
     public void usuarioAdicionado(User usuario) {
         SwingUtilities.invokeLater(() -> modeloUsuarios.addElement(usuario.getNome()));
     }
 
+    //UserListener
     @Override
     public void usuarioRemovido(User usuario) {
         SwingUtilities.invokeLater(() -> {
+            //retira da lista de Usuários Ativos
             modeloUsuarios.removeElement(usuario.getNome());
-            UserSessionWindow sessao = sessoes.remove(usuario.getNome());
-            if (sessao != null) sessao.dispose();
-        });
-    }
-
-    @Override
-    public void usuarioAlterado(User usuario) {
-        SwingUtilities.invokeLater(() -> {
-            listaUsuarios.repaint();
-            UserSessionWindow sessao = sessoes.get(usuario.getNome());
-            if (sessao != null) {
-                sessao.atualizarUsuario(usuario);
+            UserSessionWindow janelaSessao = sessoes.remove(usuario.getNome());
+            //fecha a janela
+            if (janelaSessao != null) {
+                janelaSessao.dispose();
             }
         });
     }
 
-    // ===== MessageListener =====
+    //UserListener
+    //Se o UsuarioMudar o nome ou status altera a aba do chat
+    //Porque o mesmo usuario pode sair e entrar com nomes diferentes (uso o IP do pc como identificador)
+    @Override
+    public void usuarioAlterado(User usuario) {
+        SwingUtilities.invokeLater(() -> {
+            listaUsuariosConectados.repaint();
+            UserSessionWindow JanelaSessao = sessoes.get(usuario.getNome());
+            if (JanelaSessao != null) {
+                JanelaSessao.atualizarUsuario(usuario);
+            }
+        });
+    }
+
+
+    //MessageListener
     @Override
     public void mensagemRecebida(String mensagem, User remetente, boolean chatGeral) {
         SwingUtilities.invokeLater(() -> {
             if (chatGeral) {
-                if (janelaGrupo == null) janelaGrupo = new GroupChatWindow(chatService);
+                if (janelaGrupo == null) janelaGrupo = new UserSessionWindow(chatService);
                 janelaGrupo.addMessage(remetente.getNome() + ": " + mensagem);
                 janelaGrupo.setVisible(true);
-            } else {
-                UserSessionWindow sessao = sessoes.get(remetente.getNome());
+            }
+            else {
+                UserSessionWindow JanelaSessao = sessoes.get(remetente.getNome());
 
-                // 🔹 Se a janela já existe, só adiciona a mensagem
-                if (sessao != null) {
-                    sessao.addMessage(remetente.getNome() + ": " + mensagem);
-                    sessao.setVisible(true);
-                    sessao.toFront(); // garante que fique visível
+                //caso 1: janela existente
+                if (JanelaSessao != null) {
+                    JanelaSessao.addMessage(remetente.getNome() + ": " + mensagem);
+                    JanelaSessao.setVisible(true);
+                    JanelaSessao.toFront();
                     return;
                 }
 
-                // 🔹 Caso não exista, cria e adiciona ao mapa
-                sessao = new UserSessionWindow(remetente, chatService);
-                sessao.addMessage(remetente.getNome() + ": " + mensagem);
-                sessoes.put(remetente.getNome(), sessao);
-                sessao.setVisible(true);
+                //caso 2: janela não existente
+                JanelaSessao = new UserSessionWindow(remetente, chatService);
+                JanelaSessao.addMessage(remetente.getNome() + ": " + mensagem);
+                sessoes.put(remetente.getNome(), JanelaSessao);
+                JanelaSessao.setVisible(true);
             }
         });
     }
 
-    // ===== Fim chat =====
+    //Quando o Usuário A clica no botão "ENCERRAR CHAT" envia uma mensagem ao Usuário B e depois de 3s fecha a janela
+    //Mensagem tipo FIM_CHAT está implementada na classe ChatService
     public void fimChatRecebido(User usuario) {
         SwingUtilities.invokeLater(() -> {
-            UserSessionWindow sessao = sessoes.remove(usuario.getNome());
-            if (sessao != null) {
-                sessao.addMessage("⚠️ " + usuario.getNome() + " encerrou o chat.");
-                new Timer(3000, e -> sessao.dispose()).start();
+            UserSessionWindow janelaSessao = sessoes.remove(usuario.getNome());
+            if (janelaSessao != null) {
+                janelaSessao.addMessage(usuario.getNome() + " encerrou o chat com você.");
+                new Timer(3000, e -> janelaSessao.dispose()).start();
             }
         });
     }
